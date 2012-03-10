@@ -1,5 +1,8 @@
-require "auditable/version"
+require 'active_record'
+require 'active_support/concern'
 
-module Auditable
-  # Your code goes here...
-end
+require "auditable/version"
+require 'auditable/audit'
+require 'auditable/auditing'
+
+ActiveRecord::Base.send :include, Auditable::Auditing

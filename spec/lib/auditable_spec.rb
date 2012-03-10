@@ -6,6 +6,9 @@ describe ".audited_attributes" do
   end
 end
 describe Auditable do
+  let(:survey) { Survey.create :title => "demo" }
+
   it "should be good" do
+    survey.title.should == "demo"
   end
 end

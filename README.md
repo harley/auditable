@@ -2,14 +2,23 @@
 
 There are a lot of gems under https://www.ruby-toolbox.com/categories/Active_Record_Versioning and https://www.ruby-toolbox.com/categories/Active_Record_User_Stamping but there are various issues with them (as of this writing):
 
-* Almost all of them are outdated and not working with Rails 3.2.2. Some of the popular ones such as `papertrail` and `vestal_versions` have many issues and pull requests but haven't been addressed or merged. Based on the large number of forks of thee popular gems, people seem to be OK with their own gem tweaks. Some tweaks are good, but some are too hackish. I couldn't figure out whose fork should be the most reliable to use.
-* Many of these gems have evolved overtime and become rather cumbersome. Heck, even to support both Rails 2 and Rails 3 makes it some quite bloated.
-* Most or all of them don't seem to support beyond the database columns, i.e. not working (or working well) with virtual methods or associations. `papertrail` supports `has_one` but that seems to be it.
+* Almost all of them are outdated and not working with Rails 3.2.2. Some of the popular ones such as `papertrail` and `vestal_versions` have many issues and pull requests but haven't been addressed or merged. Based on the large number of forks of these popular gems, people seem to be OK with their own gem tweaks. Some tweaks are good, but some are too hackish (to deal with recent Rails changes) based on the commits that I have read. I have tried some of the more popular ones but they don't work reliably for something simple I'm trying to achieve.
+* Many of these gems have evolved overtime and become rather (very) cumbersome.
+* Most or all of them don't seem to support beyond the database columns, i.e. not working (or working well) with virtual methods or associations. `papertrail` supports `has_one` but the author said it's not easy to go further than that.
 * I need something simple and lightweight.
 
-A lot of the gems in the above category are great and I draw inspirations from them. I'm just attempting to create a dead simple gem that lets you easily diff the changes on a model's attributes or methods. Yes, methods. Here's the FIRST difference in my approach:
+A lot of the gems in the above category are great. I'm just aiming to create a dead simple gem that lets you easily diff the changes on a model's attributes or methods. Yes, methods, not just attributes. Here's the key difference in my approach:
 
-Rule #1: If you want to track changes to complicated stuff such as associated records, just define a method that returns some representation of the associated records and let `auditable` keeps track of the changes in those values over time. See examples under Usage section.
+If you want to track changes to complicated stuff such as associated records, just define a method that returns some representation of the associated records and let `auditable` keeps track of the changes in those values over time.
+
+Basically:
+
+* I don't want the default to track all my columns. Only the attributes or methods I specify please.
+* I don't want to deal with association mess. Use methods instead.
+* I care about tracking the values of certain virtual attributes or methods, not just database columns
+* I want something simple, similar to [ActiveRecord::Dirty#changes](http://ar.rubyonrails.org/classes/ActiveRecord/Dirty.html#M000291) but persistent across saves. See `Auditable::Auditing#audited_changes` below.
+
+See examples under Usage section.
 
 ## Installation
 
@@ -27,81 +36,92 @@ Or install it yourself as:
 
 ## Usage
 
-Provide a list of methods you'd like to audit to the `audit` method in your model.
+First, add the necessary `audits` table to your database with:
 
-```ruby
-class Survey
-  has_many :questions
+    rails generate auditable:migration
+    rake db:migrate
 
-  audit :page_count, :question_ids
-end
-```
+Then, provide a list of methods you'd like to audit to the `audit` method in your model.
 
-Now in a Rails console (I'm actually almost making the following up, because I haven't even written the gem code yet at this point -- to be updated later)
+    class Survey
+      has_many :questions
 
-```
->> s = Survey.create! :title => "test"
-=> #<Survey id: 1, title: "test", ...>
->> s.audits
-=> [#<Auditable::Audit id: 1, auditable_id: 1, auditable_type: "Survey", user_id: nil, user_type: nil, modifications: {"page_count"=>1, "question_ids"=>[]}, action: "create", created_at: ...]
->> s.questions.create! :title => "q1"
->> s.audits
-=> [#<Auditable::Audit id: 2, auditable_id: 1, auditable_type: "Survey", user_id: nil, user_type: nil, modifications: {"page_count"=>1, "question_ids"=>[1]}, action: "create", created_at: ...]
->> s.questions.create! :title => "q2"
->> s.audits
-=> [#<Auditable::Audit id: 3, auditable_id: 1, auditable_type: "Survey", user_id: nil, user_type: nil, modifications: {"page_count"=>1, "question_ids"=>[1, 2]}, action: "create", created_at: ...]
->> s.update_attribute :page_count, 2
->> s.audits.last.diff(s.audits.first)
-=> {"page_count" => [1, 2], "question_ids" => [[], [1,2]]}
-```
+      audit :title, :current_page, :question_ids
+    end
 
+## Demo
+
+I'm going to demo with the test models from the test suite. You probably want to use 'rails console' and test with the model that you want to audit.
+
+    $ bundle console
+    >> require(File.expand_path "../spec/spec_helper", __FILE__)
+    => true
+    >> s = Survey.create :title => "demo"
+    => #<Survey id: 1, title: "demo">
+    >> Survey.audited_attributes
+    => [:title, :current_page]
+    >> s.audited_changes
+    => {"title"=>[nil, "demo"]}
+    >> s.update_attributes(:title => "new title", :current_page => 2)
+    => true
+    >> s.audited_changes
+    => {"title"=>["demo", "new title"], "current_page"=>[nil, 2]}
+    >> s.update_attributes(:current_page => 3, :action => "modified", :changed_by => User.create(:name => "someone"))
+    => true
+    >> s.audited_changes
+    => {"current_page"=>[2, 3]}
+    >> s.audits.last
+    => #<Auditable::Audit id: 3, auditable_id: 1, auditable_type: "Survey", user_id: 1, user_type: "User", modifications: {"title"=>"new title", "current_page"=>3}, action: "modified", created_at: ...>
+
+## How it works
 ### Audit Model
 
 As seen above, I intend to have a migration file like this for the Audit model:
 
-```ruby
-class CreateAudits < ActiveRecord::Migration
-  def change
-    create_table :audits do |t|
-      t.belongs_to :auditable, :polymorphic => true
-      t.belongs_to :user, :polymorphic => true
-      t.text :modifications
-      t.string :action
-      t.timestamps
+    class CreateAudits < ActiveRecord::Migration
+      def change
+        create_table :audits do |t|
+          t.belongs_to :auditable, :polymorphic => true
+          t.belongs_to :user, :polymorphic => true
+          t.text :modifications
+          t.string :action
+          t.timestamps
+        end
+      end
     end
-  end
-end
-```
 
-It guessable from the above that `audits.modifications` will just be a serialized representation of keys and values of the audited attributes. How do I store stuff to `audits.user` and `audits.action`?
+It guessable from the above that `audits.modifications` will just be a serialized representation of keys and values of the audited attributes.
 
-Rule #2: If you want to store the user who made the changed to the record, just assigned it to the record's `changed_by` attribute, like so:
+### Who changed it and what was that action?
 
-```ruby
-# note you have to define `attr_accessor :changed_by` yourself
->> @survey.changed_by = current_user
->> @survey.questions << Question.create :title => "How are you?"
-# then @surveys.audits.last.user will be set to current_user
-```
+If you want to store the user who made the changed to the record, just assigned it to the record's `changed_by` attribute, like so:
+
+    # note you have to define `attr_accessor :changed_by` yourself
+    >> @survey.update_attributes(:changed_by => current_user, # and other attributes you want to set)
+    # then @surveys.audits.last.user will be set to current_user
+    # also works when you set changed_by and call save later, of course
 
 `action` will just be `create` or `update` depending on the operation on the record, but you can also override it with another virtual attribute, call it `change_action`
 
-```ruby
->> @survey.changed_action = "add page"
->> @survey.update_attribute :page_count, 2
-```
+    >> @survey.changed_action = "add page"
+    >> @survey.update_attribute :page_count, 2
 
-Rule #3: Don't store a new row in `audits` table if the `modifications` column is the same as the one immediately before it. This is to make you review the changes more easily
+**Don't store a new row in `audits` table if the `modifications` column is the same as the one immediately before it. This makes it easier to review change**
 
 That's all I can do for this README Driven approach. Back soon.
 
 ## TODO
 
+* update readme
 * code it
 * test it
-* update readme
-* come up with a better syntax. e.g.
-  * right now, changes are serialized into `audits.modifications` column, but what if we what to do multiple sets of audits at each save. I'm thinking of supporting syntax like this: `audit :modifications => [:method_1, :method_2], :trivial_changes => [:method_3, :method_4, :method_5]` and store the changes to `audits.trivial_changes`. It'd assume that you add this column to the `audits` table yourself, of course.
+* update readme again (will try)
+* come up with a better syntax.
+
+e.g. right now, changes are serialized into `audits.modifications` column, but what if we what to do multiple sets of audits at each save. I'm thinking of supporting syntax like this:
+
+    # store snapshots of certain methods to audits.trivial_changes column (that you can easily add yourself)
+    audit :modifications => [:method_1, :method_2], :trivial_changes => [:method_3, :method_4, :method_5]
 
 ## Contributing
 

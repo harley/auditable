@@ -100,7 +100,8 @@ That's all I can do for this README Driven approach. Back soon.
 * code it
 * test it
 * update readme
-* come up with a better syntax
+* come up with a better syntax. e.g.
+  * right now, changes are serialized into `audits.modifications` column, but what if we what to do multiple sets of audits at each save. I'm thinking of supporting syntax like this: `audit :modifications => [:method_1, :method_2], :trivial_changes => [:method_3, :method_4, :method_5]` and store the changes to `audits.trivial_changes`. It'd assume that you add this column to the `audits` table yourself, of course.
 
 ## Contributing
 

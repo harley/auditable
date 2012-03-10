@@ -37,14 +37,16 @@ module Auditable
     end
 
     # INSTANCE METHODS
-    def snap!(action = "update", user = nil)
+    def snap!(action_default = "update", user = nil)
       snap = {}
       self.class.audited_attributes.each do |attr|
         snap[attr.to_s] = self.send attr
       end
       snap
 
-      audits.create :modifications => snap, :action => action, :user => user || (respond_to?(:changed_by) && changed_by)
+      audit_action = (self.respond_to?(:action) && self.action) || action_default
+      user ||= (respond_to?(:changed_by) && changed_by)
+      audits.create :modifications => snap, :action => audit_action, :user => user
     end
 
     def audited_changes

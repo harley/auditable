@@ -14,4 +14,7 @@ Gem::Specification.new do |gem|
   gem.name          = "auditable"
   gem.require_paths = ["lib"]
   gem.version       = Auditable::VERSION
+
+  gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'rspec'
 end

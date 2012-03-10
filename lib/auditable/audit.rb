@@ -14,23 +14,23 @@ module Auditable
     #     :this_audio_own_key  => [nil, <value_in_this_audit>]
     #   }
     def diff(other_audit)
-      return self.modifications if other_audit.nil?
+      other_modifications = other_audit ? other_audit.modifications : {}
 
       {}.tap do |d|
         # find keys present only in this audit
-        (self.modifications.keys - other_audit.modifications.keys).each do |k|
-          d[k] = [nil, self.modifications[k]]
+        (self.modifications.keys - other_modifications.keys).each do |k|
+          d[k] = [nil, self.modifications[k]] if self.modifications[k]
         end
 
         # find keys present only in other audit
-        (other_audit.modifications.keys - self.modifications.keys).each do |k|
-          d[k] = [other_audit.modifications[k], nil]
+        (other_modifications.keys - self.modifications.keys).each do |k|
+          d[k] = [other_modifications[k], nil] if other_modifications[k]
         end
 
         # find common keys and diff values
         self.modifications.keys.each do |k|
-          if self.modifications[k] != other_audit.modifications[k]
-            d[k] = [other_audit.modifications[k], self.modifications[k]]
+          if self.modifications[k] != other_modifications[k]
+            d[k] = [other_modifications[k], self.modifications[k]]
           end
         end
       end

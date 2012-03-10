@@ -1,5 +1,7 @@
 class Survey < ActiveRecord::Base
-  audit :title
+  attr_accessor :current_page
+
+  audit :title, :current_page
 end
 
 # TODO add Question class

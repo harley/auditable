@@ -7,9 +7,9 @@ module Auditable
     module ClassMethods
       def audited_attributes
         attrs =  @audited_attributes || []
-        unless superclass == ActiveRecord::Base
-          # STI case: include parent's audited_attributes
-          attrs.push(*superclass.audited_attributes) if superclass.respond_to?(:audited_attributes)
+        # handle STI case: include parent's audited_attributes
+        if superclass != ActiveRecord::Base and superclass.respond_to?(:audited_attributes)
+          attrs.push(*superclass.audited_attributes)
         end
         attrs
       end
@@ -18,7 +18,7 @@ module Auditable
         @audited_attributes = attrs
       end
 
-      # Configuration options are:
+      # Configuration options for audit
       #
       # Example:
       #
@@ -36,7 +36,7 @@ module Auditable
       end
     end
 
-    #module InstanceMethods
+    # INSTANCE METHODS
     def snap!(action = "update", user = nil)
       snap = {}
       self.class.audited_attributes.each do |attr|
@@ -46,7 +46,10 @@ module Auditable
 
       audits.create :modifications => snap, :action => action, :user => user || (respond_to?(:changed_by) && changed_by)
     end
-    #end
+
+    def audited_changes
+      audits.last.latest_diff
+    end
 
     def self.included(base)
     end

@@ -35,6 +35,11 @@ module Auditable
 
     # INSTANCE METHODS
 
+    # Get the latest audit record
+    def last_audit
+      audits.last
+    end
+
     # Take a snapshot of and save the current state of the audited record's audited attributes
     def snap!(action_default = "update", user = nil)
       snap = {}.tap do |s|

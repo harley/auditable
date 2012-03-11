@@ -55,4 +55,10 @@ describe Auditable do
     survey.save!
     survey.audits.last.action.should == "modified"
   end
+
+  describe ".last_audit" do
+    it "should be the same as audits.last" do
+      survey.audits.last.should == survey.last_audit
+    end
+  end
 end

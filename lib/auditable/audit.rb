@@ -43,6 +43,7 @@ module Auditable
       diff_since(created_at)
     end
 
+    # Diff this audit with the latest audit created before the `time` variable passed
     def diff_since(time)
       other_audit = self.class.where("created_at < ?", time).order("created_at DESC").limit(1).first
       diff(other_audit)

@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["harley@socialsci.com"]
   gem.description   = %q{A simple gem that audit models' attributes or methods by taking snapshots and diff them for you. Starting from scratch to work with Rails 3.2.2 onwards}
   gem.summary       = %q{A simple gem to audit attributes and methods in ActiveRecord models.}
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/harleyttd/auditable"
 
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.files         = `git ls-files`.split("\n")
@@ -16,13 +16,13 @@ Gem::Specification.new do |gem|
   gem.version       = Auditable::VERSION
 
   gem.add_development_dependency 'rake'
-  gem.add_development_dependency 'rspec'
+  gem.add_development_dependency 'rspec', '>= 2'
   gem.add_development_dependency 'watchr'
   gem.add_development_dependency 'sqlite3'
   # documetation stuff
   gem.add_development_dependency 'yard'
   gem.add_development_dependency 'rdiscount'
 
-  gem.add_runtime_dependency 'activesupport'
-  gem.add_runtime_dependency 'activerecord'
+  gem.add_runtime_dependency 'activesupport', '>= 3.0'
+  gem.add_runtime_dependency 'activerecord', '>= 3.0'
 end

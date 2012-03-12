@@ -48,6 +48,9 @@ module Auditable
         if changed_by = options.delete(:changed_by)
           scoped = scoped.where(:user_id => changed_by.id, :user_type => changed_by.class.name)
         end
+        if audit_tag = options.delete(:audit_tag)
+          scoped = scoped.where(:tag => audit_tag)
+        end
         diff scoped.first
       else
         diff_since(created_at)

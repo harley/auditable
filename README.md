@@ -45,6 +45,7 @@ Then, provide a list of methods you'd like to audit to the `audit` method in you
 
     class Survey
       has_many :questions
+      attr_accessor :current_page
 
       audit :title, :current_page, :question_ids
     end
@@ -53,25 +54,46 @@ Then, provide a list of methods you'd like to audit to the `audit` method in you
 
 I'm going to demo with the test models from the test suite. You probably want to use 'rails console' and test with the model that you want to audit.
 
+For more details, I suggest you check out the test examples in the `spec` folder itself.
+
     $ bundle console
     >> require(File.expand_path "../spec/spec_helper", __FILE__)
     => true
+
     >> s = Survey.create :title => "demo"
     => #<Survey id: 1, title: "demo">
+
     >> Survey.audited_attributes
     => [:title, :current_page]
+
     >> s.audited_changes
     => {"title"=>[nil, "demo"]}
+
     >> s.update_attributes(:title => "new title", :current_page => 2)
     => true
+
     >> s.audited_changes
     => {"title"=>["demo", "new title"], "current_page"=>[nil, 2]}
+
     >> s.update_attributes(:current_page => 3, :action => "modified", :changed_by => User.create(:name => "someone"))
     => true
+
     >> s.audited_changes
     => {"current_page"=>[2, 3]}
+
     >> s.audits.last
     => #<Auditable::Audit id: 3, auditable_id: 1, auditable_type: "Survey", user_id: 1, user_type: "User", modifications: {"title"=>"new title", "current_page"=>3}, action: "modified", created_at: ...>
+
+    >> s.tag_with(:tag => "something memorable")
+       # we just tagged the latest audit, now then do make changes with s
+       # ...
+       # assuming you've made some changes to s
+
+    >> s.audited_changes(:tag => "something memorable")
+       # return the changes against the tagged version above
+       # note s.audited_changes still diff against the second latest audit
+       # you can also pass in other filters, such as s.audited_changes(:changed_by => some_user, :audit_action => "modified")
+       # note that it always uses the latest audit to diff against an earlier audit matching the arguments to audited_changes
 
 ## How it works
 ### Audit Model
@@ -112,11 +134,9 @@ That's all I can do for this README Driven approach. Back soon.
 
 ## TODO
 
-* update readme
-* code it
-* test it
-* update readme again (will try)
-* come up with a better syntax.
+* improve api (still clumsy) -- come up with better syntax
+* get some suggestions and feedback
+* update README
 
 e.g. right now, changes are serialized into `audits.modifications` column, but what if we what to do multiple sets of audits at each save. I'm thinking of supporting syntax like this:
 

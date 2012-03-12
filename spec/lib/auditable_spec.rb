@@ -71,10 +71,10 @@ describe Auditable do
   end
 
   context "tagging" do
-    describe ".tag_with" do
+    describe ".audit_tag_with" do
       it "should tag the latest audit" do
         survey.audits.last.tag.should_not == "hey"
-        survey.tag_with("hey")
+        survey.audit_tag_with("hey")
         survey.audits.last.tag.should == "hey"
       end
     end
@@ -82,11 +82,11 @@ describe Auditable do
     describe ".audited_changes" do
       context "using :tag and :changed_by arguments" do
         before do
-          survey.tag_with("original")
+          survey.audit_tag_with("original")
           survey.update_attributes :title => "new title 1", :changed_by => user
-          survey.tag_with("locked")
+          survey.audit_tag_with("locked")
           survey.update_attributes :title => "new title 2", :changed_by => another_user
-          survey.tag_with("locked")
+          survey.audit_tag_with("locked")
           survey.update_attributes :title => "new title 3", :changed_by => user
           survey.update_attributes :title => "new title 4", :changed_by => another_user
         end

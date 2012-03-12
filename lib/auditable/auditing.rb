@@ -41,7 +41,7 @@ module Auditable
     end
 
     # Mark the latest record in order to easily find and perform diff against later
-    def tag_with(tag)
+    def audit_tag_with(tag)
       last_audit.update_attribute(:tag, tag)
     end
 

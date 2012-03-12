@@ -84,7 +84,7 @@ For more details, I suggest you check out the test examples in the `spec` folder
     >> s.audits.last
     => #<Auditable::Audit id: 3, auditable_id: 1, auditable_type: "Survey", user_id: 1, user_type: "User", modifications: {"title"=>"new title", "current_page"=>3}, action: "modified", created_at: ...>
 
-    >> s.tag_with(:tag => "something memorable")
+    >> s.audit_tag_with("something memorable")
        # we just tagged the latest audit, now then do make changes with s
        # ...
        # assuming you've made some changes to s

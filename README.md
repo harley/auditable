@@ -1,5 +1,7 @@
 # Auditable
 
+[![Build Status](http://travis-ci.org/harleyttd/auditable.png)](http://travis-ci.org/harleyttd/auditable)
+
 There are a lot of gems under https://www.ruby-toolbox.com/categories/Active_Record_Versioning and https://www.ruby-toolbox.com/categories/Active_Record_User_Stamping but there are various issues with them (as of this writing):
 
 * Almost all of them are outdated and not working with Rails 3.2.2. Some of the popular ones such as `papertrail` and `vestal_versions` have many issues and pull requests but haven't been addressed or merged. Based on the large number of forks of these popular gems, people seem to be OK with their own gem tweaks. Some tweaks are good, but some are too hackish (to deal with recent Rails changes) based on the commits that I have read. I have tried some of the more popular ones but they don't work reliably for something simple I'm trying to achieve.

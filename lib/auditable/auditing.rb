@@ -40,21 +40,29 @@ module Auditable
       audits.last
     end
 
+    # Mark the latest record in order to easily find and perform diff against later
+    def tag_with(tag)
+      last_audit.update_attribute(:tag, tag)
+    end
+
     # Take a snapshot of and save the current state of the audited record's audited attributes
-    def snap!(action_default = "update", user = nil)
+    def snap!(action_default = "update")
       snap = {}.tap do |s|
         self.class.audited_attributes.each do |attr|
           s[attr.to_s] = self.send attr
         end
       end
-      audit_action = (self.respond_to?(:action) && self.action) || action_default
-      user ||= respond_to?(:changed_by) && changed_by
-      audits.create :modifications => snap, :action => audit_action, :user => user
+      audits.create! do |audit|
+        audit.modifications = snap
+        audit.tag = self.audit_tag if self.respond_to?(:audit_tag)
+        audit.action = (self.respond_to?(:audit_action) && self.audit_action) || action_default
+        audit.user = self.changed_by if self.respond_to?(:changed_by)
+      end
     end
 
     # Get the latest changes by comparing the latest two audits
-    def audited_changes
-      audits.last.latest_diff
+    def audited_changes(options = {})
+      audits.last.latest_diff(options)
     end
 
     #def self.included(base)

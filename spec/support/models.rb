@@ -1,7 +1,6 @@
 class Survey < ActiveRecord::Base
   attr_accessor :current_page
-  attr_accessor :changed_by
-  attr_accessor :action
+  attr_accessor :changed_by, :audit_action, :audit_tag
 
   audit :title, :current_page
 end
@@ -9,8 +8,7 @@ end
 class User < ActiveRecord::Base
 end
 
-# TODO add Question class
-
+# TODO add Question class to give examples on association stuff
 
 # prepare test data
 class CreateTestSchema < ActiveRecord::Migration

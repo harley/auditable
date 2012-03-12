@@ -5,7 +5,7 @@ class CreateAudits < ActiveRecord::Migration
       t.belongs_to :user, :polymorphic => true
       t.text :modifications
       t.string :action
-      t.datetime :marked_at
+      t.string :tag
       t.timestamps
     end
   end

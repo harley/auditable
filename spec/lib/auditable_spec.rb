@@ -17,6 +17,26 @@ describe Auditable do
     survey.audits.last.action.should == "create"
   end
 
+  context "for existing records without existing audits" do
+    before do
+      survey.audits.delete_all
+    end
+
+    it "should not not fail with errors" do
+      survey.audit_tag_with("something") # no audit to tag but should be ok with it
+      survey.audits.count.should == 0
+      survey.audited_changes.should == {}
+      survey.audited_changes(:tag => "something").should == {}
+    end
+
+    it "should work after first update " do
+      survey.update_attributes :title => "new title"
+      survey.audited_changes.should == {"title" => ["test survey", "new title"]}
+      survey.audited_changes(:tag => "something").should == {"title" => [nil, "new title"]}
+      survey.audits.count.should == 1
+    end
+  end
+
   it "should behave similar to ActiveRecord::Dirty#changes" do
     # first, let's see how ActiveRecord::Dirty#changes behave
     survey.title = "new title"

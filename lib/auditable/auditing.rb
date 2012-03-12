@@ -42,7 +42,7 @@ module Auditable
 
     # Mark the latest record in order to easily find and perform diff against later
     def audit_tag_with(tag)
-      last_audit.update_attribute(:tag, tag)
+      last_audit.update_attribute(:tag, tag) if last_audit
     end
 
     # Take a snapshot of and save the current state of the audited record's audited attributes
@@ -62,7 +62,7 @@ module Auditable
 
     # Get the latest changes by comparing the latest two audits
     def audited_changes(options = {})
-      audits.last.latest_diff(options)
+      audits.last.try(:latest_diff, options) || {}
     end
 
     #def self.included(base)

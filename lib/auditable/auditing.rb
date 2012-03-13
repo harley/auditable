@@ -60,11 +60,20 @@ module Auditable
           s[attr.to_s] = self.send attr
         end
       end
-      options[:modifications] = snap
-      options[:tag]           = self.audit_tag    || options[:tag]
-      options[:action]        = self.audit_action || options[:action]
-      options[:user]          = self.changed_by   || options[:user]
-      audits.create(options)
+
+      if last_audit.nil? || last_audit.modifications != snap
+        # build new audit
+        audit = audits.build(:modifications => snap)
+      else
+        # no changes on modifications, but have to update the latest record
+        audit = audits.last
+      end
+
+      options[:tag]    = self.audit_tag    || options[:tag]
+      options[:action] = self.audit_action || options[:action]
+      options[:user]   = self.changed_by   || options[:user]
+
+      audit.update_attributes(options)
     end
 
     # Get the latest changes by comparing the latest two audits

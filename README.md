@@ -134,7 +134,6 @@ That's all I can do for this README Driven approach. Back soon.
 
 ## TODO
 
-* **Don't store a new row in the `audits` table if the `modifications` column is the same as the one immediately before it. This makes it easier to review change**
 * improve api (still clumsy) -- come up with better syntax
 * get some suggestions and feedback
 * update README

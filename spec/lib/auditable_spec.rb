@@ -150,4 +150,10 @@ describe Auditable do
       survey.should respond_to :audit_action
     end
   end
+
+  context "no changes on audited attributes" do
+    it "should not create new audits" do
+      expect { survey.save }.to_not change { survey.audits.count }
+    end
+  end
 end

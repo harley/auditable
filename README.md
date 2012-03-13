@@ -1,6 +1,7 @@
 # Auditable
 
 [![Build Status](https://secure.travis-ci.org/harleyttd/auditable.png?branch=master)](http://travis-ci.org/harleyttd/auditable)
+[![Dependency Status](https://gemnasium.com/harleyttd/auditable.png)](https://gemnasium.com/harleyttd/auditable)
 
 There are a lot of gems under https://www.ruby-toolbox.com/categories/Active_Record_Versioning and https://www.ruby-toolbox.com/categories/Active_Record_User_Stamping but there are various issues with them (as of this writing):
 

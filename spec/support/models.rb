@@ -1,11 +1,11 @@
 class Survey < ActiveRecord::Base
   attr_accessor :current_page
-  attr_accessor :changed_by, :audit_action, :audit_tag
 
   audit :title, :current_page
 end
 
 class User < ActiveRecord::Base
+  audit :name
 end
 
 # TODO add Question class to give examples on association stuff

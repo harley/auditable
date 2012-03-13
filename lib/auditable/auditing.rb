@@ -1,5 +1,3 @@
-#require 'active_support/concern'
-
 module Auditable
   module Auditing
     extend ActiveSupport::Concern
@@ -26,14 +24,16 @@ module Auditable
       #   end
       def audit(*options)
         has_many :audits, :class_name => "Auditable::Audit", :as => :auditable
-        after_create {|record| record.snap!("create")}
-        after_update {|record| record.snap!("update")}
+        after_create {|record| record.snap!(:action => "create")}
+        after_update {|record| record.snap!(:action => "update")}
 
         self.audited_attributes = Array.wrap options
       end
     end
 
     # INSTANCE METHODS
+
+    attr_accessor :changed_by, :audit_action, :audit_tag
 
     # Get the latest audit record
     def last_audit
@@ -52,18 +52,19 @@ module Auditable
     end
 
     # Take a snapshot of and save the current state of the audited record's audited attributes
-    def snap!(action_default = "update")
+    #
+    # Accept values for :tag, :action and :user in the argument hash. However, these are overridden by the values set by the auditable record's virtual attributes (#audit_tag, #audit_action, #changed_by) if defined
+    def snap!(options = {})
       snap = {}.tap do |s|
         self.class.audited_attributes.each do |attr|
           s[attr.to_s] = self.send attr
         end
       end
-      audits.create! do |audit|
-        audit.modifications = snap
-        audit.tag = self.audit_tag if self.respond_to?(:audit_tag)
-        audit.action = (self.respond_to?(:audit_action) && self.audit_action) || action_default
-        audit.user = self.changed_by if self.respond_to?(:changed_by)
-      end
+      options[:modifications] = snap
+      options[:tag]           = self.audit_tag    || options[:tag]
+      options[:action]        = self.audit_action || options[:action]
+      options[:user]          = self.changed_by   || options[:user]
+      audits.create(options)
     end
 
     # Get the latest changes by comparing the latest two audits

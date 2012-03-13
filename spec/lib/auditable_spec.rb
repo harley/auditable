@@ -142,4 +142,12 @@ describe Auditable do
       another_survey.audited_changes.should == {"title" => ["another survey", "another title 1"]}
     end
   end
+
+  context "virtual attributes" do
+    it "should be there!" do
+      survey.should respond_to :changed_by
+      survey.should respond_to :audit_tag
+      survey.should respond_to :audit_action
+    end
+  end
 end

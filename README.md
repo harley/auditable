@@ -120,7 +120,7 @@ It guessable from the above that `audits.modifications` will just be a serialize
 
 If you want to store the user who made the changed to the record, just assigned it to the record's `changed_by` attribute, like so:
 
-    # note you have to define `attr_accessor :changed_by` yourself
+    # note `attr_accessor :changed_by` is defined in your Survey class by the gem
     >> @survey.update_attributes(:changed_by => current_user, # and other attributes you want to set)
     # then @surveys.audits.last.user will be set to current_user
     # also works when you set changed_by and call save later, of course

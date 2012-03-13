@@ -8,5 +8,11 @@ class CreateAudits < ActiveRecord::Migration
       t.string :tag
       t.timestamps
     end
+
+    add_index :audits, [:auditable_id, :auditable_type], :name => 'auditable_index'
+    add_index :audits, [:user_id, :user_type], :name => 'user_index'
+    add_index :audits, :created_at
+    add_index :audits, :action
+    add_index :audits, :tag
   end
 end

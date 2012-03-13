@@ -146,12 +146,16 @@ e.g. right now, changes are serialized into `audits.modifications` column, but w
 
 ## Contributing
 
+Suggestions are welcome. Please open new issues on Github for things you'd like to be addressed.
+
+Additionally, pull requests are welcome!
+
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Added some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
 
-## CHANGELOG
+## {file:CHANGELOG.md CHANGELOG}
 
 {include:file:CHANGELOG.md}

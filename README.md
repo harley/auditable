@@ -18,9 +18,9 @@ Basically:
 * I don't want the default to track all my columns. Only the attributes or methods I specify please.
 * I don't want to deal with association mess. Use methods instead.
 * I care about tracking the values of certain virtual attributes or methods, not just database columns
-* I want something simple, similar to [ActiveRecord::Dirty#changes](http://ar.rubyonrails.org/classes/ActiveRecord/Dirty.html#M000291) but persistent across saves. See `Auditable::Auditing#audited_changes` below.
+* I want something simple, similar to [ActiveRecord::Dirty#changes](http://ar.rubyonrails.org/classes/ActiveRecord/Dirty.html#M000291) but persistent across saves. See the usage of {Auditable::Auditing#audited_changes} below.
 
-See examples under Usage section.
+See examples under {file:README.md#Usage Usage} section. Please check the {file:CHANGELOG.md} as well.
 
 ## Installation
 
@@ -130,12 +130,11 @@ If you want to store the user who made the changed to the record, just assigned 
     >> @survey.changed_action = "add page"
     >> @survey.update_attribute :page_count, 2
 
-**Don't store a new row in `audits` table if the `modifications` column is the same as the one immediately before it. This makes it easier to review change**
-
 That's all I can do for this README Driven approach. Back soon.
 
 ## TODO
 
+* **Don't store a new row in the `audits` table if the `modifications` column is the same as the one immediately before it. This makes it easier to review change**
 * improve api (still clumsy) -- come up with better syntax
 * get some suggestions and feedback
 * update README
@@ -152,3 +151,7 @@ e.g. right now, changes are serialized into `audits.modifications` column, but w
 3. Commit your changes (`git commit -am 'Added some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## CHANGELOG
+
+{include:file:CHANGELOG.md}

@@ -23,17 +23,23 @@ describe Auditable do
     end
 
     it "should not not fail with errors" do
-      survey.audit_tag_with("something") # no audit to tag but should be ok with it
       survey.audits.count.should == 0
       survey.audited_changes.should == {}
       survey.audited_changes(:tag => "something").should == {}
     end
 
-    it "should work after first update " do
+    it "should work after first update" do
       survey.update_attributes :title => "new title"
       survey.audited_changes.should == {"title" => ["test survey", "new title"]}
       survey.audited_changes(:tag => "something").should == {"title" => [nil, "new title"]}
       survey.audits.count.should == 1
+    end
+
+    it "should create a new audit when calling audit_tag_with without existing audits" do
+      survey.audits.count.should == 0
+      survey.audit_tag_with("something") # no audit to tag but should be ok with it
+      survey.audits.count.should == 1
+      survey.audits.last.tag.should == "something"
     end
   end
 

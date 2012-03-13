@@ -40,9 +40,15 @@ module Auditable
       audits.last
     end
 
-    # Mark the latest record in order to easily find and perform diff against later
+    # Mark the latest record with a tag in order to easily find and perform diff against later
+    # If there are no audits for this record, create a new audit with this tag
     def audit_tag_with(tag)
-      last_audit.update_attribute(:tag, tag) if last_audit
+      if last_audit
+        last_audit.update_attribute(:tag, tag)
+      else
+        self.audit_tag = tag
+        snap!
+      end
     end
 
     # Take a snapshot of and save the current state of the audited record's audited attributes

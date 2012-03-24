@@ -1,3 +1,7 @@
+### 0.0.8 (2012-03-24)
+#### Fixes
+* Fix 'Could not find generator auditable:migration' bug due to a refactoring that moved `generators` out of the `/lib` folder. Moved it back
+
 ### 0.0.7 (2012-03-13)
 #### Improvement
 * Only create a new audit if `modifications` differ from last audit

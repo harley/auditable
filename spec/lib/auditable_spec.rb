@@ -77,6 +77,7 @@ describe Auditable do
     it "should set changed_by" do
       survey.update_attributes(:title => "another title", :changed_by => user)
       survey.audits.last.user.should == user
+      survey.audits.last.changed_by.should == user
     end
 
     it "should set audit_action" do

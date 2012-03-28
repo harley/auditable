@@ -77,6 +77,7 @@ describe Auditable do
     it "should set changed_by" do
       survey.update_attributes(:title => "another title", :changed_by => user)
       survey.audits.last.user.should == user
+      survey.audits.last.changed_by.should == user
     end
 
     it "should set audit_action" do
@@ -154,6 +155,16 @@ describe Auditable do
   context "no changes on audited attributes" do
     it "should not create new audits" do
       expect { survey.save }.to_not change { survey.audits.count }
+    end
+  end
+  
+  context "audit returns last change of given attribute" do
+    let(:some_survey) { Survey.create :title => "some survey" }
+    it "should audit return last change of attribute even through last update not changes this attribute" do
+      some_survey.update_attributes :title => "new title 1", :current_page => 1
+      some_survey.update_attributes :title => "new title 2"
+      some_survey.should respond_to :last_change_of
+      some_survey.last_change_of("current_page").should == [nil, 1]
     end
   end
 end

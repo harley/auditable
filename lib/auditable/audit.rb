@@ -62,5 +62,13 @@ module Auditable
       other_audit = self.class.where("created_at < ?", time).order("created_at DESC").limit(1).first
       diff(other_audit)
     end
+
+    # Returns user object
+    #
+    # Use same method name like in update_attributes:
+    #
+    def changed_by
+      user
+    end
   end
 end

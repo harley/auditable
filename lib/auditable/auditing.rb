@@ -80,6 +80,20 @@ module Auditable
     def audited_changes(options = {})
       audits.last.try(:latest_diff, options) || {}
     end
+    
+    # Return last attribute's change
+    #
+    # This method may be slow and inefficient on model with lots of audit objects.
+    def last_change_of(attribute)
+      prev_audit = nil
+      audits.reverse_each do |audit|
+        if audit.modifications[attribute].present?
+          return audit.diff(prev_audit)[attribute]
+        end
+        prev_audit = audit
+      end
+      nil
+    end
 
     #def self.included(base)
     #end

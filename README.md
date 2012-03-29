@@ -17,8 +17,8 @@ If you want to track changes to complicated stuff such as associated records, ju
 Basically:
 
 * I don't want the default to track all my columns. Only the attributes or methods I specify please.
-* I don't want to deal with association mess. Use methods instead.
-* I care about tracking the values of certain virtual attributes or methods, not just database columns
+* I don't want to deal with association mess. Use methods instead. Nothing prevents you from saving taking json snapshots; just diff them later.
+* I care about tracking the values of certain virtual attributes or methods, not just database columns.
 * I want something simple, similar to [ActiveRecord::Dirty#changes](http://ar.rubyonrails.org/classes/ActiveRecord/Dirty.html#M000291) but persistent across saves. See the usage of {Auditable::Auditing#audited_changes} below.
 
 See examples under {file:README.md#Usage Usage} section. Please check the {file:CHANGELOG.md} as well.
@@ -55,7 +55,7 @@ Then, provide a list of methods you'd like to audit to the `audit` method in you
 
 ## Demo
 
-I'm going to demo with the test models from the test suite. You probably want to use 'rails console' and test with the model that you want to audit.
+I'm going to demo with the test models from the test suite. You probably want to use `rails console` and test with the model that you want to audit.
 
 For more details, I suggest you check out the test examples in the `spec` folder itself.
 
@@ -110,6 +110,7 @@ As seen above, I intend to have a migration file like this for the Audit model:
           t.belongs_to :user, :polymorphic => true
           t.text :modifications
           t.string :action
+          t.string :tag
           t.timestamps
         end
       end
@@ -122,7 +123,7 @@ It guessable from the above that `audits.modifications` will just be a serialize
 If you want to store the user who made the changed to the record, just assigned it to the record's `changed_by` attribute, like so:
 
     # note `attr_accessor :changed_by` is defined in your Survey class by the gem
-    >> @survey.update_attributes(:changed_by => current_user, # and other attributes you want to set)
+    >> @survey.update_attributes(:changed_by => current_user) # and other attributes you want to set)
     # then @surveys.audits.last.user will be set to current_user
     # also works when you set changed_by and call save later, of course
 

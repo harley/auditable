@@ -85,12 +85,13 @@ module Auditable
     #
     # This method may be slow and inefficient on model with lots of audit objects.
     def last_change_of(attribute)
-      prev_audit = nil
+      index = audits.count
       audits.reverse_each do |audit|
+        index -= 1
         if audit.modifications[attribute].present?
+          prev_audit = audits[index-1] if index > 0
           return audit.diff(prev_audit)[attribute]
         end
-        prev_audit = audit
       end
       nil
     end

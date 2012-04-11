@@ -70,5 +70,13 @@ module Auditable
     def changed_by
       user
     end
+
+    def same_audited_content?(other_audit)
+      other_audit and relevant_attributes == other_audit.relevant_attributes
+    end
+
+    def relevant_attributes
+      attributes.slice("modifications", "tag", "action", "user").reject {|k,v| v.blank? }
+    end
   end
 end

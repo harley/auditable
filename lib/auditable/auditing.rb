@@ -61,19 +61,19 @@ module Auditable
         end
       end
 
-      if last_audit.nil? || last_audit.modifications != snap
-        # build new audit
-        audit = audits.build(:modifications => snap)
-      else
-        # no changes on modifications, but have to update the latest record
-        audit = audits.last
-      end
+      last_saved_audit = audits.last
 
+      # build new audit
+      audit = audits.build(:modifications => snap)
       options[:tag]    = self.audit_tag    || options[:tag]
       options[:action] = self.audit_action || options[:action]
       options[:user]   = self.changed_by   || options[:user]
+      audit.attributes = audit.attributes.merge options
 
-      audit.update_attributes(options)
+      # only save if it's different from before
+      if !audit.same_audited_content?(last_saved_audit)
+        audit.save
+      end
     end
 
     # Get the latest changes by comparing the latest two audits

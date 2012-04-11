@@ -64,11 +64,10 @@ module Auditable
       last_saved_audit = audits.last
 
       # build new audit
-      audit = audits.build(:modifications => snap)
-      options[:tag]    = self.audit_tag    || options[:tag]
-      options[:action] = self.audit_action || options[:action]
-      options[:user]   = self.changed_by   || options[:user]
-      audit.attributes = audit.attributes.merge options
+      audit = audits.build(options.merge :modifications => snap)
+      audit.tag = self.audit_tag if audit_tag
+      audit.action = self.audit_action if audit_action
+      audit.changed_by = self.changed_by if changed_by
 
       # only save if it's different from before
       if !audit.same_audited_content?(last_saved_audit)

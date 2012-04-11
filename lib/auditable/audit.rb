@@ -66,10 +66,7 @@ module Auditable
     # Returns user object
     #
     # Use same method name like in update_attributes:
-    #
-    def changed_by
-      user
-    end
+    alias_attribute :changed_by, :user
 
     def same_audited_content?(other_audit)
       other_audit and relevant_attributes == other_audit.relevant_attributes

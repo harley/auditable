@@ -157,27 +157,26 @@ describe Auditable do
       expect { survey.save }.to_not change { survey.audits.count }
     end
   end
-  
-  context "audit returns last change of given attribute" do
-    let(:some_survey) { Survey.create :title => "some survey" }
-    it "should audit return last change of attribute even through last update not changes this attribute" do
-      some_survey.update_attributes :title => "new title 1", :current_page => 1
-      some_survey.update_attributes :title => "new title 2", :current_page => 2
-      some_survey.should respond_to :last_change_of
-      some_survey.last_change_of("current_page").should == [1, 2]
+
+  context "last change of a given attribute from past audits" do
+    it "should return the last change of attribute even through the attribute hasn't changed in recent updates" do
+      survey.update_attributes :title => "new title 1", :current_page => 1
+      survey.update_attributes :title => "new title 2", :current_page => 2
+      survey.update_attributes :title => "new title 3"
+      survey.update_attributes :title => "new title 4"
+      survey.update_attributes :title => "new title 5"
+      survey.last_change_of("current_page").should == [1, 2]
     end
 
-    let(:some_survey) { Survey.create :title => "some survey" }
     it "should audit return nil if no changes" do
-      some_survey.update_attributes :title => "new title 1"
-      some_survey.update_attributes :title => "new title 2"
-      some_survey.last_change_of("current_page").should == nil
+      survey.update_attributes :title => "new title 1"
+      survey.update_attributes :title => "new title 2"
+      survey.last_change_of("current_page").should == nil
     end
 
-    let(:some_survey) { Survey.create :title => "some survey" }
     it "should audit return last modifications even if only one audit object present" do
-      some_survey.update_attributes :title => "new title 1", :current_page => 1
-      some_survey.last_change_of("current_page").should == [nil, 1]
+      survey.update_attributes :title => "new title 1", :current_page => 1
+      survey.last_change_of("current_page").should == [nil, 1]
     end
   end
 end

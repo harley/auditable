@@ -1,3 +1,8 @@
+### 0.1.0 (1012-04-11)
+#### Changes
+* previously, `audit_tag_with` updates the latest audit if no changes are detected in a record's audited changes. now it creates a new audit row instead because this works better and prevent losing history if we call `audit_tag_with` multiple times. new audits are only created if the combo of 4 attributes is different: `modifications`, `tag`, `user`, `action`.
+* bump minor version because it is more ready for production use at this point
+
 ### 0.0.9 (2012-04-10)
 #### Improvement
 * Add `last_change_of(attribute)` to show the last change that happened to an attribute. Thanks to @zuf

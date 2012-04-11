@@ -3,6 +3,18 @@ ActiveRecord::Base.establish_connection({
   :database => ':memory:'
 })
 
+# prepare test data
+class CreateTestSchema < ActiveRecord::Migration
+  def change
+    create_table "surveys", :force => true do |t|
+      t.string "title"
+    end
+    create_table "users", :force => true do |t|
+      t.string "name"
+    end
+  end
+end
+
 CreateTestSchema.migrate(:up)
 
 # run gem's required migration

@@ -1,3 +1,7 @@
+### 0.0.9 (2012-04-10)
+#### Improvement
+* Add `last_change_of(attribute)` to show the last change that happened to an attribute. Thanks to @zuf
+
 ### 0.0.8 (2012-03-24)
 #### Fixes
 * Fix 'Could not find generator auditable:migration' bug due to a refactoring that moved `generators` out of the `/lib` folder. Moved it back

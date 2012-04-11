@@ -1,4 +1,8 @@
-### 0.1.0 (1012-04-11)
+### 0.1.1 (2012-04-11)
+#### Fixes
+* Fix bug/inconsistency between `user` and `changed_by`, now with `alias_attribute :changed_by, :user`
+
+### 0.1.0 (2012-04-11)
 #### Changes
 * previously, `audit_tag_with` updates the latest audit if no changes are detected in a record's audited changes. now it creates a new audit row instead because this works better and prevent losing history if we call `audit_tag_with` multiple times. new audits are only created if the combo of 4 attributes is different: `modifications`, `tag`, `user`, `action`.
 * bump minor version because it is more ready for production use at this point

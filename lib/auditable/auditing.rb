@@ -25,7 +25,7 @@ module Auditable
       def audit(*options)
         has_many :audits, :class_name => "Auditable::Audit", :as => :auditable
         after_create {|record| record.snap!(:action => "create")}
-        after_update {|record| record.snap!(:action => "update")}
+        after_update {|record| record.snap!(:action => "update") if record.changed?}
 
         self.audited_attributes = Array.wrap options
       end

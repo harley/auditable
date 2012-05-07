@@ -25,7 +25,7 @@ module Auditable
       def audit(*options)
         has_many :audits, :class_name => "Auditable::Audit", :as => :auditable
         after_create {|record| record.snap!(:action => "create")}
-        after_update {|record| record.snap!(:action => "update") if record.changed?}
+        after_update {|record| record.snap!(:action => "update")}
 
         self.audited_attributes = Array.wrap options
       end
@@ -72,6 +72,8 @@ module Auditable
       # only save if it's different from before
       if !audit.same_audited_content?(last_saved_audit)
         audit.save
+      else
+        audits.delete(audit)
       end
     end
 

@@ -179,6 +179,16 @@ describe Auditable do
       survey.save
       expect { 3.times { survey.save } }.to_not change { survey.audits.count }
     end
+
+    # TODO this behaviour is up for further debates: https://github.com/harleyttd/auditable/issues/7
+    it "should still store when only tag changes" do
+      survey.audits.delete_all
+      survey.update_attributes!(:audit_tag => 'one')
+      survey.update_attributes!(:audit_tag => 'two')
+      survey.update_attributes!(:audit_tag => 'three')
+      survey.update_attributes!(:audit_tag => 'four')
+      survey.audits.map(&:tag).should == %w[one two three four]
+    end
   end
 
   context "last change of a given attribute from past audits" do

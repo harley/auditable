@@ -48,11 +48,20 @@ describe Auditable do
       survey.audits.count.should == 1
     end
 
-    it "should create a new audit when calling audit_tag_with without existing audits" do
-      survey.audits.count.should == 0
-      survey.audit_tag_with("something") # no audit to tag but should be ok with it
-      survey.audits.count.should == 1
-      survey.audits.last.tag.should == "something"
+    describe ".audit_tag_with" do
+      it "should create a new audit when calling audit_tag_with without existing audits" do
+        expect do
+          survey.audit_tag_with("something") # no audit to tag but should be ok with it
+        end.to change { survey.audits.count }.from(0).to(1)
+        survey.audits.last.tag.should == "something"
+      end
+
+      it "should not create new audits when only tag changes" do
+        survey.audit_tag_with "one"
+        survey.audit_tag_with "two"
+        survey.audit_tag_with "three"
+        survey.audits.map(&:tag).should == ["three"]
+      end
     end
   end
 

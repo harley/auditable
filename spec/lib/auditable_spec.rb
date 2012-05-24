@@ -8,13 +8,26 @@ end
 
 describe Auditable do
   let(:survey) { Survey.create :title => "test survey" }
-  let(:user) { User.create(:name => "test user") }
-  let(:another_user) { User.create(:name => "another user") }
+  let(:user) { User.create :name => "test user" }
+  let(:another_user) { User.create :name => "another user" }
 
   it "should have a valid audit to start with" do
     survey.title.should == "test survey"
     survey.audited_changes.should == {"title" => [nil, "test survey"]}
     survey.audits.last.action.should == "create"
+  end
+
+  it "should work when we have multiple audits created per second (same created_at timestamps)" do
+    require 'timecop'
+    Timecop.freeze do
+      survey.update_attributes :title => "new title 1"
+      survey.update_attributes :title => "new title 2"
+      survey.audited_changes.should == {"title" => ["new title 1", "new title 2"]}
+      survey.update_attributes :title => "new title 3"
+      survey.update_attributes :title => "new title 4"
+      survey.update_attributes :title => "new title 5"
+      survey.audited_changes.should == {"title" => ["new title 4", "new title 5"]}
+    end
   end
 
   context "for existing records without existing audits" do

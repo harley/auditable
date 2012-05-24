@@ -22,6 +22,7 @@ Gem::Specification.new do |gem|
   # documetation stuff
   gem.add_development_dependency 'yard'
   gem.add_development_dependency 'rdiscount'
+  gem.add_development_dependency 'timecop'
 
   gem.add_runtime_dependency 'activesupport', '>= 3.0'
   gem.add_runtime_dependency 'activerecord', '>= 3.0'

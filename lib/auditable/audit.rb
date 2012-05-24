@@ -41,7 +41,7 @@ module Auditable
     # See #diff for more details
     def latest_diff(options = {})
       if options.present?
-        scoped = auditable.audits.order("created_at DESC")
+        scoped = auditable.audits.order("id DESC")
         if tag = options.delete(:tag)
           scoped = scoped.where(:tag => tag)
         end
@@ -59,9 +59,9 @@ module Auditable
 
     # Diff this audit with the latest audit created before the `time` variable passed
     def diff_since(time)
-      other_audit = self.class.where("created_at <= ? AND id != ?", time, id).order("created_at DESC").limit(1).first
+      other_audit = auditable.audits.where("created_at <= ? AND id != ?", time, id).order("id DESC").limit(1).first
       diff(other_audit)
-    end
+   end
 
     # Returns user object
     #

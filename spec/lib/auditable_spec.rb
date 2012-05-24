@@ -43,7 +43,7 @@ describe Auditable do
 
     it "should work after first update" do
       survey.update_attributes :title => "new title"
-      survey.audited_changes.should == {"title" => ["test survey", "new title"]}
+      survey.audited_changes.should == {"title" => [nil, "new title"]}
       survey.audited_changes(:tag => "something").should == {"title" => [nil, "new title"]}
       survey.audits.count.should == 1
     end

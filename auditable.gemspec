@@ -24,8 +24,8 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'yard'
   gem.add_development_dependency 'rdiscount'
 
-  # debugger. only included under 1.9.3 because including debugger is failing on travisci. unnecessary anyway
-  if RUBY_VERSION >= "1.9.3"
+  # debugger. only included if one sets DEBUGGER env variable
+  if ENV['DEBUGGER']
     gem.add_development_dependency 'debugger'
   end
 

@@ -26,6 +26,7 @@ module Auditable
         has_many :audits, :class_name => "Auditable::Audit", :as => :auditable
         after_create {|record| record.snap!(:action => "create")}
         after_update {|record| record.snap!(:action => "update")}
+        before_destroy {|record| record.snap!(:action => "destroyed")}
 
         self.audited_attributes = Array.wrap options
       end

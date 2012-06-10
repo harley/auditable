@@ -8,13 +8,26 @@ end
 
 describe Auditable do
   let(:survey) { Survey.create :title => "test survey" }
-  let(:user) { User.create(:name => "test user") }
-  let(:another_user) { User.create(:name => "another user") }
+  let(:user) { User.create :name => "test user" }
+  let(:another_user) { User.create :name => "another user" }
 
   it "should have a valid audit to start with" do
     survey.title.should == "test survey"
     survey.audited_changes.should == {"title" => [nil, "test survey"]}
     survey.audits.last.action.should == "create"
+  end
+
+  it "should work when we have multiple audits created per second (same created_at timestamps)" do
+    require 'timecop'
+    Timecop.freeze do
+      survey.update_attributes :title => "new title 1"
+      survey.update_attributes :title => "new title 2"
+      survey.audited_changes.should == {"title" => ["new title 1", "new title 2"]}
+      survey.update_attributes :title => "new title 3"
+      survey.update_attributes :title => "new title 4"
+      survey.update_attributes :title => "new title 5"
+      survey.audited_changes.should == {"title" => ["new title 4", "new title 5"]}
+    end
   end
 
   context "for existing records without existing audits" do
@@ -30,16 +43,25 @@ describe Auditable do
 
     it "should work after first update" do
       survey.update_attributes :title => "new title"
-      survey.audited_changes.should == {"title" => ["test survey", "new title"]}
+      survey.audited_changes.should == {"title" => [nil, "new title"]}
       survey.audited_changes(:tag => "something").should == {"title" => [nil, "new title"]}
       survey.audits.count.should == 1
     end
 
-    it "should create a new audit when calling audit_tag_with without existing audits" do
-      survey.audits.count.should == 0
-      survey.audit_tag_with("something") # no audit to tag but should be ok with it
-      survey.audits.count.should == 1
-      survey.audits.last.tag.should == "something"
+    describe ".audit_tag_with" do
+      it "should create a new audit when calling audit_tag_with without existing audits" do
+        expect do
+          survey.audit_tag_with("something") # no audit to tag but should be ok with it
+        end.to change { survey.audits.count }.from(0).to(1)
+        survey.audits.last.tag.should == "something"
+      end
+
+      it "should not create new audits when only tag changes" do
+        survey.audit_tag_with "one"
+        survey.audit_tag_with "two"
+        survey.audit_tag_with "three"
+        survey.audits.map(&:tag).should == ["three"]
+      end
     end
   end
 
@@ -155,7 +177,17 @@ describe Auditable do
   context "no changes on audited attributes" do
     it "should not create new audits" do
       survey.save
-      expect { survey.save }.to_not change { survey.audits.count }
+      expect { 3.times { survey.save } }.to_not change { survey.audits.count }
+    end
+
+    # TODO this behaviour is up for further debates: https://github.com/harleyttd/auditable/issues/7
+    it "should still store when only tag changes" do
+      survey.audits.delete_all
+      survey.update_attributes!(:audit_tag => 'one')
+      survey.update_attributes!(:audit_tag => 'two')
+      survey.update_attributes!(:audit_tag => 'three')
+      survey.update_attributes!(:audit_tag => 'four')
+      survey.audits.map(&:tag).should == %w[one two three four]
     end
   end
 

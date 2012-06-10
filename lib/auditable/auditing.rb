@@ -73,6 +73,8 @@ module Auditable
       # only save if it's different from before
       if !audit.same_audited_content?(last_saved_audit)
         audit.save
+      else
+        audits.delete(audit)
       end
     end
 

@@ -1,3 +1,13 @@
+### 0.1.3 (2012-05-24)
+#### Fixes
+* Fix a silly bug not loading the audits under the same `auditable_id`
+* Get the latest audit via `id DESC` instead of `created_at DESC`
+
+### 0.1.2 (2012-05-24)
+#### Fixes
+* Fix bug creating duplicate audits despite no change in a record's subsequent saves, due to using `.build`. See this comment on ![issue #7](https://github.com/harleyttd/auditable/issues/7#issuecomment-5520894)
+* Fix bug not finding the right audit in rare cases when there are many audits with the same `created_at` timestamp
+
 ### 0.1.1 (2012-04-11)
 #### Fixes
 * Fix bug/inconsistency between `user` and `changed_by`, now with `alias_attribute :changed_by, :user`

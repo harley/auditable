@@ -4,7 +4,7 @@ require File.expand_path('../lib/auditable/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Harley Trung"]
   gem.email         = ["harley@socialsci.com"]
-  gem.description   = %q{A simple gem that audit models' attributes or methods by taking snapshots and diff them for you. Starting from scratch to work with Rails 3.2.2 onwards}
+  gem.description   = %q{A simple gem that audit ActiveRecord models' attributes or methods by taking snapshots and diff them for you. Starting from scratch to work with Rails 3.2.2 onwards}
   gem.summary       = %q{A simple gem to audit attributes and methods in ActiveRecord models.}
   gem.homepage      = "https://github.com/harleyttd/auditable"
 
@@ -19,9 +19,15 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rspec', '>= 2'
   gem.add_development_dependency 'watchr'
   gem.add_development_dependency 'sqlite3'
+  gem.add_development_dependency 'timecop'
   # documetation stuff
   gem.add_development_dependency 'yard'
   gem.add_development_dependency 'rdiscount'
+
+  # debugger. only included if one sets DEBUGGER env variable
+  if ENV['DEBUGGER']
+    gem.add_development_dependency 'debugger'
+  end
 
   gem.add_runtime_dependency 'activesupport', '>= 3.0'
   gem.add_runtime_dependency 'activerecord', '>= 3.0'

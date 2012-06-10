@@ -1,1 +1,1 @@
-rvm --create use 1.9.3@auditable
+rvm --create use 1.9.3-p194@auditable

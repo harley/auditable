@@ -22,12 +22,15 @@ module Auditable
       #   class Survey < ActiveRecord::Base
       #     audit :page_count, :question_ids
       #   end
-      def audit(*options)
-        has_many :audits, :class_name => "Auditable::Audit", :as => :auditable
+      def audit(*args)
+        options = args.extract_options!
+        options[:class_name] ||= "Auditable::Audit"
+        options[:as] = :auditable
+        has_many :audits, options
         after_create {|record| record.snap!(:action => "create")}
         after_update {|record| record.snap!(:action => "update")}
 
-        self.audited_attributes = Array.wrap options
+        self.audited_attributes = Array.wrap args
       end
     end
 

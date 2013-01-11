@@ -11,6 +11,10 @@ describe Auditable do
   let(:user) { User.create :name => "test user" }
   let(:another_user) { User.create :name => "another user" }
 
+  it "should have a valid audit class name" do
+    survey.audits.first.should be_instance_of(MyAudit)
+  end
+
   it "should have a valid audit to start with" do
     survey.title.should == "test survey"
     survey.audited_changes.should == {"title" => [nil, "test survey"]}

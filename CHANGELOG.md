@@ -1,3 +1,7 @@
+### 0.1.4 (2012-01-11)
+#### Improvement
+* Add class_name option for method audit. This allows you to have a custom audit class that inherits from Auditable::Audit [#12]
+
 ### 0.1.3 (2012-05-24)
 #### Fixes
 * Fix a silly bug not loading the audits under the same `auditable_id`
@@ -5,7 +9,7 @@
 
 ### 0.1.2 (2012-05-24)
 #### Fixes
-* Fix bug creating duplicate audits despite no change in a record's subsequent saves, due to using `.build`. See this comment on ![issue #7](https://github.com/harleyttd/auditable/issues/7#issuecomment-5520894)
+* Fix bug creating duplicate audits despite no change in a record's subsequent saves, due to using `.build`. See this comment on [issue #7](https://github.com/harleyttd/auditable/issues/7#issuecomment-5520894)
 * Fix bug not finding the right audit in rare cases when there are many audits with the same `created_at` timestamp
 
 ### 0.1.1 (2012-04-11)

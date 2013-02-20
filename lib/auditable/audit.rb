@@ -4,6 +4,8 @@ module Auditable
     belongs_to :user, :polymorphic => true
     serialize :modifications
 
+    attr_accessible :action, :modifications
+
     # Diffing two audits' modifications
     #
     # Returns a hash containing arrays of the form

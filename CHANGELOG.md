@@ -1,4 +1,8 @@
-### 0.1.4 (2012-01-11)
+### 0.1.5 (2012-11-01)
+#### Fixes
+* Add attr_accessible for Auditable::Audit model [#13]
+
+### 0.1.4 (2012-11-01)
 #### Improvement
 * Add class_name option for method audit. This allows you to have a custom audit class that inherits from Auditable::Audit [#12]
 

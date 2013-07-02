@@ -1,3 +1,7 @@
+if Rails::VERSION::STRING >= "4.0.0"
+	require 'protected_attributes'
+end
+
 module Auditable
   class Audit < ActiveRecord::Base
     belongs_to :auditable, :polymorphic => true

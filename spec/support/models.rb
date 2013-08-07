@@ -12,6 +12,7 @@ class MyAudit < Auditable::Audit
 
 end
 
+
 # TODO add Question class to give examples on association stuff
 
 

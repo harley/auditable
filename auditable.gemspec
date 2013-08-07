@@ -18,17 +18,21 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'rspec', '>= 2'
   gem.add_development_dependency 'watchr'
-  gem.add_development_dependency 'sqlite3'
+  if RUBY_PLATFORM == 'java'
+    gem.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
+  else
+    gem.add_development_dependency 'sqlite3'
+  end
   gem.add_development_dependency 'timecop'
-  # documetation stuff
+  # documentation stuff
   gem.add_development_dependency 'yard'
-  gem.add_development_dependency 'rdiscount'
+  gem.add_development_dependency 'kramdown'
 
   # debugger. only included if one sets DEBUGGER env variable
   if ENV['DEBUGGER']
     gem.add_development_dependency 'debugger'
   end
 
-  gem.add_runtime_dependency 'activesupport', '>= 3.0'
-  gem.add_runtime_dependency 'activerecord', '>= 3.0'
+  gem.add_runtime_dependency 'activesupport', '~> 3.0'
+  gem.add_runtime_dependency 'activerecord', '~> 3.0'
 end

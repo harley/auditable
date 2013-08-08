@@ -4,6 +4,7 @@ module Auditable
 
     module ClassMethods
       attr_writer :audited_attributes
+      attr_writer :audited_version
 
       # Get the list of methods to track over record saves, including those inherited from parent
       def audited_attributes
@@ -13,6 +14,38 @@ module Auditable
           attrs.push(*superclass.audited_attributes)
         end
         attrs
+      end
+
+      # Is the version set for audits
+      def audited_version
+        version =  @audited_version_cache
+
+        # Cache has not been set
+        if version.nil?
+
+          # Check this class for a val
+          version = @audited_version
+
+          # Check the parent for a val
+          if version.nil? && superclass != ActiveRecord::Base && superclass.respond_to?(:audited_version)
+            version = superclass.audited_version
+          end
+
+          # Set cache explicitly to false if the result was nil
+          if version.nil?
+            @audited_version_cache = false
+
+          # Coerce to symbol if a string
+          elsif version.is_a? String
+            @audited_version_cache = version.to_sym
+
+          # Otherwise set the cache straight up
+          else
+            @audited_version_cache = version
+          end
+        end
+
+        version
       end
 
       # Set the list of methods to track over record saves
@@ -26,6 +59,9 @@ module Auditable
         options = args.extract_options!
         options[:class_name] ||= "Auditable::Audit"
         options[:as] = :auditable
+
+        self.audited_version = options.delete(:version)
+
         has_many :audits, options
         after_create {|record| record.snap!(:action => "create")}
         after_update {|record| record.snap!(:action => "update")}
@@ -74,7 +110,22 @@ module Auditable
 
       # only save if it's different from before
       if !audit.same_audited_content?(last_saved_audit)
-        audit.save
+        # If version is enabled, wrap in a transaction to get the next version number
+        # before saving
+        if self.class.audited_version
+          ActiveRecord::Base.transaction do
+            if self.class.audited_version.is_a? Symbol
+              audit.version = self.send( self.class.audited_version )
+            else
+              audit.version = (audits.maximum('version')||0) + 1
+            end
+            audit.save
+          end
+
+        # Save as usual
+        else
+          audit.save
+        end
       else
         audits.delete(audit)
       end

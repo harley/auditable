@@ -1,8 +1,12 @@
 require 'spec_helper'
 
-describe "Model.audited_attributes" do
-  it "should be available to models using audit" do
+describe "Model class methods" do
+  it "#audited_attributes should be available using audit" do
     Survey.audited_attributes.should include :title
+  end
+
+  it "#audited_version should be available using audit" do
+    Survey.audited_version.should be_true
   end
 end
 
@@ -19,6 +23,10 @@ describe Auditable do
     survey.title.should == "test survey"
     survey.audited_changes.should == {"title" => [nil, "test survey"]}
     survey.audits.last.action.should == "create"
+  end
+
+  it "should have a version" do
+    survey.audits.last.version.should eql 1
   end
 
   it "should work when we have multiple audits created per second (same created_at timestamps)" do

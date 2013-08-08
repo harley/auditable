@@ -17,4 +17,16 @@ describe "Auditable::Audit#version" do
     model.audits.last.version.should eql 12345
   end
 
+  it "should diff by version" do
+    model.update_attributes :title => 'Manual Version Change'
+
+    model.audited_changes.should eql({"title"=>["Test", "Manual Version Change"]})
+
+    audit = model.audits.first
+    audit.version = 7000
+    audit.save!
+
+    model.audited_changes.should eql({"title"=>["Manual Version Change", "Test"]})
+  end
+
 end

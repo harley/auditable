@@ -76,14 +76,24 @@ module Auditable
 
     # Get the latest audit record
     def last_audit
-      audits.last
+      # if version is enabled, use the version
+      if self.class.audited_version
+        audits.order('version DESC').first
+
+      # other pull last inserted
+      else
+        audits.last
+      end
     end
 
     # Mark the latest record with a tag in order to easily find and perform diff against later
     # If there are no audits for this record, create a new audit with this tag
     def audit_tag_with(tag)
-      if last_audit
-        last_audit.update_attribute(:tag, tag)
+      if audit = last_audit
+        audit.update_attribute(:tag, tag)
+
+        # Force the trigger of a reload if audited_version is used. Happens automatically otherwise
+        audits.reload if self.class.audited_version
       else
         self.audit_tag = tag
         snap!
@@ -100,7 +110,7 @@ module Auditable
         end
       end
 
-      last_saved_audit = audits.last
+      last_saved_audit = last_audit
 
       # build new audit
       audit = audits.build(options.merge :modifications => snap)
@@ -133,7 +143,7 @@ module Auditable
 
     # Get the latest changes by comparing the latest two audits
     def audited_changes(options = {})
-      audits.last.try(:latest_diff, options) || {}
+      last_audit.try(:latest_diff, options) || {}
     end
 
     # Return last attribute's change

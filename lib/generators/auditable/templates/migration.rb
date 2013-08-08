@@ -6,6 +6,7 @@ class CreateAudits < ActiveRecord::Migration
       t.text :modifications
       t.string :action
       t.string :tag
+      t.integer :version
       t.timestamps
     end
 

@@ -24,7 +24,7 @@ end
 
 
 class Plant < ActiveRecord::Base
-  audit :name, after_create: :manually_create_audit, after_update: :manually_update_audit
+  audit :name, after_create: :manually_create_audit, :after_update => :manually_update_audit, :version => true
 
   def manually_create_audit
     self.save_audit( {:action => 'manual create'}.merge :modifications => self.snap )

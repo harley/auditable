@@ -3,49 +3,104 @@ module Auditable
     extend ActiveSupport::Concern
 
     module ClassMethods
-      attr_writer :audited_attributes
-      attr_writer :audited_version
 
       # Get the list of methods to track over record saves, including those inherited from parent
       def audited_attributes
-        attrs =  @audited_attributes || []
-        # handle STI case: include parent's audited_attributes
-        if superclass != ActiveRecord::Base and superclass.respond_to?(:audited_attributes)
-          attrs.push(*superclass.audited_attributes)
+        audited_cache('attributes') do |parent_class, attrs|
+          attrs.push(*parent_class.audited_attributes)
         end
-        attrs
       end
 
-      # Is the version set for audits
+      def audited_attributes=(attributes)
+        set_audited_cache( 'attributes', attributes ) do |parent_class, attrs|
+          attrs.push(*parent_class.audited_attributes)
+        end
+      end
+
       def audited_version
-        version =  @audited_version_cache
+        audited_cache('version')
+      end
 
-        # Cache has not been set
-        if version.nil?
+      def audited_version=(version)
+        set_audited_cache( 'version', version )
+      end
 
-          # Check this class for a val
-          version = @audited_version
+      def audited_after_create
+        audited_cache('after_create')
+      end
 
-          # Check the parent for a val
-          if version.nil? && superclass != ActiveRecord::Base && superclass.respond_to?(:audited_version)
-            version = superclass.audited_version
-          end
+      def audited_after_create=(after_create)
+        set_audited_cache('after_create', after_create) do |parent_class, callback|
 
-          # Set cache explicitly to false if the result was nil
-          if version.nil?
-            @audited_version_cache = false
+          # Disable the inherited audit create callback
+          skip_callback(:create, :after, parent_class.audited_after_create)
 
-          # Coerce to symbol if a string
-          elsif version.is_a? String
-            @audited_version_cache = version.to_sym
+          callback
+        end
+      end
 
-          # Otherwise set the cache straight up
-          else
-            @audited_version_cache = version
+      def audited_after_update
+        audited_cache('after_update')
+      end
+
+      def audited_after_update=(after_update)
+        set_audited_cache('after_update', after_update) do |parent_class, callback|
+
+          # Disable the inherited audit create callback
+          skip_callback(:update, :after, parent_class.audited_after_update)
+
+          callback
+        end
+      end
+
+      # Set the configuration of Auditable. Optional block to access the parent class configuration setting.
+      def set_audited_cache(key,val,&blk)
+
+        if superclass != ActiveRecord::Base && superclass.respond_to?(:audited_cache)
+          if block_given?
+            begin
+              val = yield( superclass, val )
+            rescue
+              raise "Failed to create audit for #{self.name} accessing parent #{superclass.name} - #{$!}"
+            end
           end
         end
 
-        version
+        @audited_cache[key] = val
+      end
+
+      # Get the configuration of Auditable. Check the parent class for the configuration if it does not exist in the
+      # implementing class.
+      def audited_cache( key, &blk )
+        topic =  @audited_cache[key]
+
+        # Check the parent for a val
+        if topic.nil? && superclass != ActiveRecord::Base && superclass.respond_to?(:audited_cache)
+          begin
+            if block_given?
+                topic = yield( superclass, topic )
+            else
+              topic = superclass.audited_cache( key )
+            end
+          rescue
+            raise "Failed to create audit for #{self.name} accessing parent #{superclass.name} - #{$!}"
+          end
+        end
+
+        # Set cache explicitly to false if the result was nil
+        if topic.nil? || false
+          topic = @audited_cache[key] = false
+
+        # Coerce to symbol if a string
+        elsif topic.is_a? String
+          topic = @audited_cache[key] = topic.to_sym
+
+        # Otherwise set the cache straight up
+        else
+          @audited_cache[key] = topic
+        end
+
+        topic
       end
 
       # Set the list of methods to track over record saves
@@ -56,15 +111,35 @@ module Auditable
       #     audit :page_count, :question_ids
       #   end
       def audit(*args)
+
+        # init the cache
+        @audited_cache = {}.with_indifferent_access
+
         options = args.extract_options!
+
+        callback = options.delete(:after_create)
+        self.audited_after_create = callback if callback
+        callback = options.delete(:after_update)
+        self.audited_after_update = callback if callback
+
         options[:class_name] ||= "Auditable::Audit"
         options[:as] = :auditable
 
         self.audited_version = options.delete(:version)
 
         has_many :audits, options
-        after_create {|record| record.snap!(:action => "create")}
-        after_update {|record| record.snap!(:action => "update")}
+
+        if self.audited_after_create
+          after_create self.audited_after_create
+        else
+          after_create :audit_create_callback
+        end
+
+        if self.audited_after_update
+          after_update self.audited_after_update
+        else
+          after_update :audit_update_callback
+        end
 
         self.audited_attributes = Array.wrap args
       end
@@ -100,20 +175,29 @@ module Auditable
       end
     end
 
-    # Take a snapshot of and save the current state of the audited record's audited attributes
+    # Take a snapshot of the current state of the audited record's audited attributes
     #
     # Accept values for :tag, :action and :user in the argument hash. However, these are overridden by the values set by the auditable record's virtual attributes (#audit_tag, #audit_action, #changed_by) if defined
-    def snap!(options = {})
-      snap = {}.tap do |s|
+    def snap
+      {}.tap do |s|
         self.class.audited_attributes.each do |attr|
           s[attr.to_s] = self.send attr
         end
       end
+    end
 
+    # Take a snapshot of and save the current state of the audited record's audited attributes
+    #
+    # Accept values for :tag, :action and :user in the argument hash. However, these are overridden by the values set by the auditable record's virtual attributes (#audit_tag, #audit_action, #changed_by) if defined
+    def snap!(options = {})
+      self.save_audit(options.merge(:modifications => self.snap))
+    end
+
+    def save_audit(snap)
       last_saved_audit = last_audit
 
       # build new audit
-      audit = audits.build(options.merge :modifications => snap)
+      audit = audits.build(snap)
       audit.tag = self.audit_tag if audit_tag
       audit.action = self.audit_action if audit_action
       audit.changed_by = self.changed_by if changed_by
@@ -139,6 +223,7 @@ module Auditable
       else
         audits.delete(audit)
       end
+
     end
 
     # Get the latest changes by comparing the latest two audits
@@ -161,6 +246,18 @@ module Auditable
         end
       end
       nil
+    end
+
+    protected
+
+    # Create callback
+    def audit_create_callback
+      self.snap!(:action => "create")
+    end
+
+    # Update callback
+    def audit_update_callback
+      self.snap!(:action => "update")
     end
   end
 end

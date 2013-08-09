@@ -24,15 +24,18 @@ end
 
 
 class Plant < ActiveRecord::Base
-  audit :name, after_create: :manually_create_audit, after_update: :manually_update_audit, changed_by: :lumberjack, :version => true
+  audit :name, :after_create => :manually_create_audit, :after_update => :manually_update_audit, changed_by: :lumberjack, :version => true
 
+  def audit_action
+    'audit action'
+  end
 
   def manually_create_audit
-    self.save_audit( {:action => 'manual create'}.merge :modifications => self.snap )
+    self.save_audit( {:action => 'manual create', :changed_by => self.audit_changed_by, :modifications => self.snap } )
   end
 
   def manually_update_audit
-    self.save_audit( {:action => 'manual update'}.merge :modifications => self.snap )
+    self.save_audit( {:action => 'manual update', :changed_by => self.audit_changed_by, :tag => 'tagged!', :modifications => self.snap} )
   end
 
 

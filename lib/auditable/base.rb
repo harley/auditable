@@ -5,7 +5,7 @@ module Auditable
     belongs_to :user, :polymorphic => true
     serialize :modifications
 
-    attr_accessible :action, :modifications
+    attr_accessible :action, :modifications, :version
 
     # Diffing two audits' modifications
     #

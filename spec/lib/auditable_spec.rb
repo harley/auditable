@@ -115,7 +115,7 @@ describe Auditable do
     end
 
     it "should set audit_action" do
-      survey.update_attributes(:audit_action => "modified")
+      survey.update_attributes(:title => 'new title', :audit_action => "modified")
       survey.audits.last.action.should == "modified"
     end
 

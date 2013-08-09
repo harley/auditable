@@ -169,6 +169,16 @@ module Auditable
 
     attr_accessor :audit_action, :audit_tag
 
+    def audit_changed_by
+      changed_by_call = self.class.audited_cache('changed_by')
+
+      if changed_by_call.respond_to? :call
+        changed_by_call.call(self)
+      else
+        self.send(changed_by_call)
+      end
+    end
+
     # Get the latest audit record
     def last_audit
       # if version is enabled, use the version
@@ -220,14 +230,7 @@ module Auditable
       audit = audits.build(snap)
       audit.tag = self.audit_tag if audit_tag
       audit.action = self.audit_action if audit_action
-
-      changed_by_call = self.class.audited_cache('changed_by')
-
-      if changed_by_call.respond_to? :call
-        audit.changed_by = changed_by_call.call(self)
-      else
-        audit.changed_by = self.send(changed_by_call)
-      end
+      audit.changed_by = self.audit_changed_by if self.audit_changed_by
 
       # only save if it's different from before
       if !audit.same_audited_content?(last_saved_audit)

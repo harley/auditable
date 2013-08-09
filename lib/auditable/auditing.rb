@@ -66,7 +66,7 @@ module Auditable
           end
         end
 
-        # init the cache, since child classes may declare audit
+        # init the cache, since child classes may not declare audit
         @audited_cache ||= {}.with_indifferent_access
         @audited_cache[key] = val
       end
@@ -75,7 +75,7 @@ module Auditable
       # implementing class.
       def audited_cache( key, &blk )
 
-        # init the cache, since child classes may declare audit
+        # init the cache, since child classes may not declare audit
         @audited_cache ||= {}.with_indifferent_access
         topic =  @audited_cache[key]
 
@@ -116,9 +116,6 @@ module Auditable
       #     audit :page_count, :question_ids
       #   end
       def audit(*args)
-
-        # init the cache
-        @audited_cache = {}.with_indifferent_access
 
         options = args.extract_options!
 

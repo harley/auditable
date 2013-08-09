@@ -7,7 +7,7 @@ module Auditable
       # Get the list of methods to track over record saves, including those inherited from parent
       def audited_attributes
         audited_cache('attributes') do |parent_class, attrs|
-          attrs.push(*parent_class.audited_attributes)
+          (attrs || []).push(*parent_class.audited_attributes)
         end
       end
 
@@ -58,12 +58,17 @@ module Auditable
           end
         end
 
+        # init the cache, since child classes may declare audit
+        @audited_cache ||= {}.with_indifferent_access
         @audited_cache[key] = val
       end
 
       # Get the configuration of Auditable. Check the parent class for the configuration if it does not exist in the
       # implementing class.
       def audited_cache( key, &blk )
+
+        # init the cache, since child classes may declare audit
+        @audited_cache ||= {}.with_indifferent_access
         topic =  @audited_cache[key]
 
         # Check the parent for a val
@@ -77,19 +82,19 @@ module Auditable
           rescue
             raise "Failed to create audit for #{self.name} accessing parent #{superclass.name} - #{$!}"
           end
-        end
 
-        # Set cache explicitly to false if the result was nil
-        if topic.nil? || false
-          topic = @audited_cache[key] = false
+          # Set cache explicitly to false if the result was nil
+          if topic.nil?
+            topic = @audited_cache[key] = false
 
-        # Coerce to symbol if a string
-        elsif topic.is_a? String
-          topic = @audited_cache[key] = topic.to_sym
+          # Coerce to symbol if a string
+          elsif topic.is_a? String
+            topic = @audited_cache[key] = topic.to_sym
 
-        # Otherwise set the cache straight up
-        else
-          @audited_cache[key] = topic
+          # Otherwise set the cache straight up
+          else
+            @audited_cache[key] = topic
+          end
         end
 
         topic

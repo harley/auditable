@@ -155,8 +155,6 @@ module Auditable
     end
 
     # Take a snapshot of the current state of the audited record's audited attributes
-    #
-    # Accept values for :tag, :action and :user in the argument hash. However, these are overridden by the values set by the auditable record's virtual attributes (#audit_tag, #audit_action, #changed_by) if defined
     def snap
       {}.tap do |s|
         self.class.audited_attributes.each do |attr|

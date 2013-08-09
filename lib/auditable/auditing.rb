@@ -118,9 +118,7 @@ module Auditable
         # setup changed_by
         changed_by = options.delete(:changed_by)
 
-        if changed_by.is_a?(String)
-          set_audited_cache('changed_by', changed_by.to_sym)
-        elsif changed_by.is_a?(Symbol)  || changed_by.respond_to?(:call)
+        if changed_by.is_a?(String) || changed_by.is_a?(Symbol) || changed_by.respond_to?(:call)
           set_audited_cache('changed_by', changed_by)
 
         # If inherited from parent's changed_by, do nothing

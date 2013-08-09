@@ -14,14 +14,18 @@ end
 
 
 class Plant < ActiveRecord::Base
-  audit :name, after_create: :manually_create_audit, after_update: :manually_update_audit
+  audit :name, :after_create => :manually_create_audit, :after_update => :manually_update_audit
+
+  def audit_action
+    'audit action'
+  end
 
   def manually_create_audit
-    self.save_audit( {:action => 'manual create'}.merge :modifications => self.snap )
+    self.save_audit( {:action => 'manual create', :modifications => self.snap } )
   end
 
   def manually_update_audit
-    self.save_audit( {:action => 'manual update'}.merge :modifications => self.snap )
+    self.save_audit( {:action => 'manual update', :tag => 'tagged!', :modifications => self.snap} )
   end
 end
 

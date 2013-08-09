@@ -170,17 +170,19 @@ module Auditable
     #
     # Accept values for :tag, :action and :user in the argument hash. However, these are overridden by the values set by the auditable record's virtual attributes (#audit_tag, #audit_action, #changed_by) if defined
     def snap!(options = {})
-      self.save_audit(options.merge(:modifications => self.snap))
+      data = options.merge(:modifications => self.snap)
+
+      data[:tag]        = self.audit_tag    if self.audit_tag
+      data[:action]     = self.audit_action if self.audit_action
+      data[:changed_by] = self.changed_by   if self.changed_by
+      self.save_audit( data )
     end
 
-    def save_audit(snap)
+    def save_audit(data)
       last_saved_audit = last_audit
 
       # build new audit
-      audit = audits.build(snap)
-      audit.tag = self.audit_tag if audit_tag
-      audit.action = self.audit_action if audit_action
-      audit.changed_by = self.changed_by if changed_by
+      audit = audits.build(data)
 
       # only save if it's different from before
       if !audit.same_audited_content?(last_saved_audit)

@@ -14,7 +14,7 @@ end
 
 
 class Plant < ActiveRecord::Base
-  audit :name, after_create: :manually_create_audit, after_update: :manually_update_audit
+  audit :name, after_create: :manually_create_audit, after_update: :manually_update_audit, changed_by: :lumberjack
 
   def manually_create_audit
     self.save_audit( {:action => 'manual create'}.merge :modifications => self.snap )
@@ -23,14 +23,24 @@ class Plant < ActiveRecord::Base
   def manually_update_audit
     self.save_audit( {:action => 'manual update'}.merge :modifications => self.snap )
   end
+
+
+  def lumberjack
+    User.create( name: "Bob" )
+  end
 end
 
 class Tree < Plant
   audit :tastey
+
+
+  def lumberjack
+    User.create( name: "Sue" )
+  end
 end
 
 class Kale < Plant
-  audit :tastey, after_create: :audit_create_callback
+  audit :tastey, after_create: :audit_create_callback, changed_by: Proc.new { |kale| User.create( name: "bob loves #{kale.name}") }
 end
 
 # TODO add Question class to give examples on association stuff

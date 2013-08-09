@@ -117,10 +117,30 @@ module Auditable
 
         options = args.extract_options!
 
+        # Setup callbacks
         callback = options.delete(:after_create)
         self.audited_after_create = callback if callback
         callback = options.delete(:after_update)
         self.audited_after_update = callback if callback
+
+        # setup changed_by
+        changed_by = options.delete(:changed_by)
+
+        if changed_by.is_a?(String)
+          set_audited_cache('changed_by', changed_by.to_sym)
+        elsif changed_by.is_a?(Symbol)  || changed_by.respond_to?(:call)
+          set_audited_cache('changed_by', changed_by)
+
+        # If inherited from parent's changed_by, do nothing
+        elsif audited_cache('changed_by')
+          # noop
+
+        # Otherwise create the default changed_by methods and set configuration in cache.
+        else
+          set_audited_cache('changed_by', :changed_by )
+          define_method(:changed_by) { @changed_by }
+          define_method(:changed_by=) { |change| @changed_by = change }
+        end
 
         options[:class_name] ||= "Auditable::Audit"
         options[:as] = :auditable
@@ -147,7 +167,7 @@ module Auditable
 
     # INSTANCE METHODS
 
-    attr_accessor :changed_by, :audit_action, :audit_tag
+    attr_accessor :audit_action, :audit_tag
 
     # Get the latest audit record
     def last_audit
@@ -200,7 +220,14 @@ module Auditable
       audit = audits.build(snap)
       audit.tag = self.audit_tag if audit_tag
       audit.action = self.audit_action if audit_action
-      audit.changed_by = self.changed_by if changed_by
+
+      changed_by_call = self.class.audited_cache('changed_by')
+
+      if changed_by_call.respond_to? :call
+        audit.changed_by = changed_by_call.call(self)
+      else
+        audit.changed_by = self.send(changed_by_call)
+      end
 
       # only save if it's different from before
       if !audit.same_audited_content?(last_saved_audit)

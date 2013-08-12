@@ -211,8 +211,13 @@ module Auditable
         self.class.audited_attributes.each do |attr|
           val = self.send attr
 
+          # Cannot serialize a Proc, skip
+          # XXX: should warn when a proc is pass into?
+          if val.is_a? Proc
+            next
+
           # Is an ActiveRecord, save its attributes instead of serializing the object
-          if val.class.ancestors.include?(ActiveRecord::Base)
+          elsif val.class.ancestors.include?(ActiveRecord::Base)
             val = val.attributes
           end
 

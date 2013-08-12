@@ -160,7 +160,14 @@ module Auditable
     def snap
       {}.tap do |s|
         self.class.audited_attributes.each do |attr|
-          s[attr.to_s] = self.send attr
+          val = self.send attr
+
+          # Is an ActiveRecord, save its attributes instead of serializing the object
+          if val.class.ancestors.include?(ActiveRecord::Base)
+            val = val.attributes
+          end
+
+          s[attr.to_s] = val
         end
       end
     end

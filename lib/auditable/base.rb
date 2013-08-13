@@ -5,7 +5,7 @@ module Auditable
     belongs_to :user, :polymorphic => true
     serialize :modifications
 
-    attr_accessible :action, :modifications, :tag, :changed_by
+    attr_accessible :action, :modifications, :tag, :changed_by, :version
 
     # Diffing two audits' modifications
     #
@@ -44,7 +44,7 @@ module Auditable
     # See #diff for more details
     def latest_diff(options = {})
       if options.present?
-        scoped = auditable.audits.order("id DESC")
+        scoped = auditable.class.audited_version ? auditable.audits.order("version DESC") : auditable.audits.order("id DESC")
         if tag = options.delete(:tag)
           scoped = scoped.where(:tag => tag)
         end
@@ -56,13 +56,26 @@ module Auditable
         end
         diff scoped.first
       else
-        diff_since(created_at)
+        if auditable.class.audited_version
+          diff_since_version(version)
+        else
+          diff_since(created_at)
+        end
+
       end
     end
 
     # Diff this audit with the latest audit created before the `time` variable passed
     def diff_since(time)
       other_audit = auditable.audits.where("created_at <= ? AND id != ?", time, id).order("id DESC").limit(1).first
+
+      diff(other_audit)
+    end
+
+    # Diff this audit with the latest audit created before this version
+    def diff_since_version(version)
+      other_audit = auditable.audits.where("version <= ? AND id != ?", version, id).order("version DESC").limit(1).first
+
       diff(other_audit)
     end
 

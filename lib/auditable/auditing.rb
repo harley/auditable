@@ -17,6 +17,14 @@ module Auditable
         end
       end
 
+      def audited_version
+        audited_cache('version')
+      end
+
+      def audited_version=(version)
+        set_audited_cache( 'version', version )
+      end
+
       def audited_after_create
         audited_cache('after_create')
       end
@@ -111,13 +119,34 @@ module Auditable
 
         options = args.extract_options!
 
+        # Setup callbacks
         callback = options.delete(:after_create)
         self.audited_after_create = callback if callback
         callback = options.delete(:after_update)
         self.audited_after_update = callback if callback
 
+        # setup changed_by
+        changed_by = options.delete(:changed_by)
+
+        if changed_by.is_a?(String) || changed_by.is_a?(Symbol) || changed_by.respond_to?(:call)
+          set_audited_cache('changed_by', changed_by)
+
+        # If inherited from parent's changed_by, do nothing
+        elsif audited_cache('changed_by')
+          # noop
+
+        # Otherwise create the default changed_by methods and set configuration in cache.
+        else
+          set_audited_cache('changed_by', :changed_by )
+          define_method(:changed_by) { @changed_by }
+          define_method(:changed_by=) { |change| @changed_by = change }
+        end
+
         options[:class_name] ||= "Auditable::Audit"
         options[:as] = :auditable
+
+        self.audited_version = options.delete(:version)
+
         has_many :audits, options
 
         if self.audited_after_create
@@ -138,18 +167,38 @@ module Auditable
 
     # INSTANCE METHODS
 
-    attr_accessor :changed_by, :audit_action, :audit_tag
+    attr_accessor :audit_action, :audit_tag
+
+    def audit_changed_by
+      changed_by_call = self.class.audited_cache('changed_by')
+
+      if changed_by_call.respond_to? :call
+        changed_by_call.call(self)
+      else
+        self.send(changed_by_call)
+      end
+    end
 
     # Get the latest audit record
     def last_audit
-      audits.last
+      # if version is enabled, use the version
+      if self.class.audited_version
+        audits.order('version DESC').first
+
+      # other pull last inserted
+      else
+        audits.last
+      end
     end
 
     # Mark the latest record with a tag in order to easily find and perform diff against later
     # If there are no audits for this record, create a new audit with this tag
     def audit_tag_with(tag)
-      if last_audit
-        last_audit.update_attribute(:tag, tag)
+      if audit = last_audit
+        audit.update_attribute(:tag, tag)
+
+        # Force the trigger of a reload if audited_version is used. Happens automatically otherwise
+        audits.reload if self.class.audited_version
       else
         self.audit_tag = tag
         snap!
@@ -186,7 +235,6 @@ module Auditable
       end
     end
 
-
     # Take a snapshot of and save the current state of the audited record's audited attributes
     #
     # Accept values for :tag, :action and :user in the argument hash. However, these are overridden by the values set by the auditable record's virtual attributes (#audit_tag, #audit_action, #changed_by) if defined
@@ -195,7 +243,8 @@ module Auditable
 
       data[:tag]        = self.audit_tag    if self.audit_tag
       data[:action]     = self.audit_action if self.audit_action
-      data[:changed_by] = self.changed_by   if self.changed_by
+      data[:changed_by] = self.audit_changed_by   if self.audit_changed_by
+
       self.save_audit( data )
     end
 
@@ -207,7 +256,22 @@ module Auditable
 
       # only save if it's different from before
       if !audit.same_audited_content?(last_saved_audit)
-        audit.save
+        # If version is enabled, wrap in a transaction to get the next version number
+        # before saving
+        if self.class.audited_version
+          ActiveRecord::Base.transaction do
+            if self.class.audited_version.is_a? Symbol
+              audit.version = self.send( self.class.audited_version )
+            else
+              audit.version = (audits.maximum('version')||0) + 1
+            end
+            audit.save
+          end
+
+        # Save as usual
+        else
+          audit.save
+        end
       else
         audits.delete(audit)
       end
@@ -216,7 +280,7 @@ module Auditable
 
     # Get the latest changes by comparing the latest two audits
     def audited_changes(options = {})
-      audits.last.try(:latest_diff, options) || {}
+      last_audit.try(:latest_diff, options) || {}
     end
 
     # Return last attribute's change

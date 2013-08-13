@@ -15,6 +15,7 @@ class CreateTestSchema < ActiveRecord::Migration
     create_table "plants", :force => true do |t|
       t.string "name"
       t.boolean "tastey"
+      t.integer "plant_id"
     end
   end
 end

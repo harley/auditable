@@ -16,6 +16,8 @@ end
 class Plant < ActiveRecord::Base
   audit :name, :after_create => :manually_create_audit, :after_update => :manually_update_audit
 
+  has_many :plants
+  
   def audit_action
     'audit action'
   end
@@ -30,7 +32,7 @@ class Plant < ActiveRecord::Base
 end
 
 class Tree < Plant
-  audit :tastey
+  audit :tastey, :plants
 end
 
 class Kale < Plant

@@ -158,21 +158,30 @@ module Auditable
 
     # Take a snapshot of the current state of the audited record's audited attributes
     def snap
+      serialize_attribute = lambda do |attribute| 
+        # If a proc, do nothing, cannot be serialized
+        # XXX: raise warning on passing in a proc?
+        if attribute.is_a? Proc
+          # noop
+         
+        # Is an ActiveRecord, serialize as hash instead of serializing the object
+        elsif attribute.class.ancestors.include?(ActiveRecord::Base)            
+          attribute.serializable_hash
+
+        # If an array, such as from an association, serialize the elements in the array
+        elsif attribute.is_a? Array
+          attribute.map { |element| serialize_attribute.call(element) }
+
+        # otherwise, return val
+        else
+          attribute
+        end
+      end
+
       {}.tap do |s|
         self.class.audited_attributes.each do |attr|
           val = self.send attr
-
-          # Cannot serialize a Proc, skip
-          # XXX: should warn when a proc is pass into?
-          if val.is_a? Proc
-            next
-
-          # Is an ActiveRecord, save its attributes instead of serializing the object
-          elsif val.class.ancestors.include?(ActiveRecord::Base)
-            val = val.attributes
-          end
-
-          s[attr.to_s] = val
+          s[attr.to_s] = serialize_attribute.call(val)
         end
       end
     end

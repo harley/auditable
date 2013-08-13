@@ -31,14 +31,14 @@ describe 'Auditable#callbacks' do
     it 'should have a valid audit to start with, include inherited attributes from Plant' do
       tree.name.should == 'a tall pine'
       tree.audits.size.should eql(1)
-      tree.audited_changes.should == {'name'=>[nil, 'a tall pine'], 'tastey'=>[nil, false]}
+      tree.audited_changes.should == {"plants"=>[nil, []], "name"=>[nil, "a tall pine"], "tastey"=>[nil, false]}
       tree.audits.last.action.should == 'manual create'
     end
 
     it 'should create a new audit using callback' do
       tree.should_receive(:manually_update_audit) { tree.save_audit( {'action' => 'dig', :tag => 'tagged!', 'modifications' => { 'name' => 'over ruled!' } } ) }
       tree.update_attributes :name => 'a small oak'
-      tree.audited_changes.should == {'name' => ['a tall pine', 'over ruled!']}
+      tree.audited_changes.should == {"plants"=>[[], nil], "name"=>["a tall pine", "over ruled!"]}
       tree.audits.last.action.should == 'dig'
       tree.audits.last.tag.should == 'tagged!'
     end

@@ -3,7 +3,7 @@ require 'rails/generators/migration'
 
 module Auditable
   module Generators
-    class MigrationGenerator < ::Rails::Generators::Base
+    class UpdateGenerator < ::Rails::Generators::Base
       include Rails::Generators::Migration
 
       def self.source_root
@@ -20,7 +20,7 @@ module Auditable
       end
 
       def generate_files
-        migration_template 'migration.rb', 'db/migrate/create_audits.rb'
+        migration_template 'update.rb', 'db/migrate/update_audits.rb'
       end
     end
   end

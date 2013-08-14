@@ -1,3 +1,7 @@
+if ActiveRecord::VERSION::STRING >= "4.0.0"
+  require 'protected_attributes'
+end 
+
 module Auditable
   class Base < ActiveRecord::Base
     self.abstract_class = true

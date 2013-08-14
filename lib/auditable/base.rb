@@ -1,3 +1,4 @@
+
 module Auditable
   class Base < ActiveRecord::Base
     self.abstract_class = true
@@ -5,7 +6,9 @@ module Auditable
     belongs_to :user, :polymorphic => true
     serialize :modifications
 
-    attr_accessible :action, :modifications, :tag, :changed_by, :version
+    if ActiveRecord::VERSION::STRING < "4.0.0"
+      attr_accessible :action, :modifications, :tag, :changed_by, :version
+    end
 
     # Diffing two audits' modifications
     #

@@ -218,7 +218,7 @@ module Auditable
           attribute.serializable_hash
 
         # If an array, such as from an association, serialize the elements in the array
-        elsif attribute.is_a? Array
+        elsif attribute.is_a?(Array) || attribute.is_a?(ActiveRecord::Associations::CollectionProxy)
           attribute.map { |element| serialize_attribute.call(element) }
 
         # otherwise, return val

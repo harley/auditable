@@ -29,6 +29,13 @@ describe "Auditable::Audit#version" do
 
       model.audited_changes.should eql({"title"=>["Manual Version Change", "Test"]})
     end
+
+    it "should find by version" do
+      model.update_attributes :title => 'Change 1'
+      version = model.audits.last.version
+
+      model.audits.where(:version => version).first.latest_diff.should eql({"title"=>["Test", "Change 1"]})
+    end
   end
 
   describe Kale do

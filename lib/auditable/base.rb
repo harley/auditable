@@ -70,7 +70,7 @@ module Auditable
 
     # Diff this audit with the latest audit created before the `time` variable passed
     def diff_since(time)
-      other_audit = auditable.audits.where("created_at <= ? AND id != ?", time, id).order("id DESC").limit(1).first
+      other_audit = auditable.audits.where("created_at <= ? AND id < ?", time, id).order("id DESC").limit(1).first
 
       diff(other_audit)
     end

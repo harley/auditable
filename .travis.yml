@@ -2,12 +2,10 @@ language: ruby
 rvm:
   - 1.9.3
   - jruby-19mode
-  - ruby-head
+  - 2.1.1
+  - rbx
 env:
   - "RAILS_VERSION=3.2.0"
   - "RAILS_VERSION=4.0.0"
-matrix:
-  allow_failures:
-    - rvm: ruby-head
 # uncomment this line if your project needs to run something other than `rake`:
-script: bundle exec rspec spec
+script: bundle exec rspec

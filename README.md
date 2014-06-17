@@ -64,8 +64,7 @@ Config Hash:
 *  after_create: _[Symbol]_ callback after the new audit is created
 *  after_update: _[Symbol]_ callback after an audit is updated
 *  changed_by: _[Symbol]_  Method to call to set the created_by model. Defaults to :user
-*  version: [Boolean or Symbol] If true, the auto incremented version column is used to determine ordering of audits. If a Symbol, the callback is used to generate the version id. Default is false.
-
+*  version: [Boolean or Symbol] If true, the auto incremented version column is used to determine ordering of audits. If a Symbol, the callback is used to generate the version id. Default is to use timestamps.
 
 ## Demo
 

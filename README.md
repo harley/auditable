@@ -61,7 +61,7 @@ Options Hash:
 *  after_create _[Symbol]_ callback after the new audit is created
 *  after_update _[Symbol]_ callback after an audit is updated
 *  changed_by _[Symbol]_  callback used to set the created_by
-*  version [Boolean] True if the version column should be used. Default is false.
+*  version [Boolean or Symbol] If true, the auto incremented version column is used to determine ordering of audits. If a Symbol, the callback is used to generate the version id. Default is false.
 
 
 ## Demo

@@ -53,6 +53,20 @@ Then, provide a list of methods you'd like to audit to the `audit` method in you
       audit :title, :current_page, :question_ids
     end
 
+### Audit method
+
+`audit( *attributes, config = {} )`
+
+* attributes: _[Array]_ Array of symbols for the model attributes that will be stored in the audit
+* config: _[Hash]_ Hash of auditable configurations
+
+Config Hash:
+*  after_create: _[Symbol]_ callback after the new audit is created
+*  after_update: _[Symbol]_ callback after an audit is updated
+*  changed_by: _[Symbol]_  Method to call to set the created_by model. Defaults to :user
+*  version: [Boolean or Symbol] If true, the auto incremented version column is used to determine ordering of audits. If a Symbol, the callback is used to generate the version id. Default is false.
+
+
 ## Demo
 
 I'm going to demo with the test models from the test suite. You probably want to use `rails console` and test with the model that you want to audit.
@@ -111,6 +125,7 @@ As seen above, I intend to have a migration file like this for the Audit model:
           t.text :modifications
           t.string :action
           t.string :tag
+          t.integer :version
           t.timestamps
         end
       end
@@ -131,8 +146,6 @@ If you want to store the user who made the changed to the record, just assigned 
 
     >> @survey.changed_action = "add page"
     >> @survey.update_attribute :page_count, 2
-
-That's all I can do for this README Driven approach. Back soon.
 
 ## TODO
 

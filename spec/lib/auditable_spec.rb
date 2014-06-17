@@ -6,7 +6,7 @@ describe "Model class methods" do
   end
 
   it "#audited_version should be available using audit" do
-    Survey.audited_version.should be_true
+    Survey.audited_version.should eql true
   end
 end
 

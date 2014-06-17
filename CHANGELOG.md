@@ -1,3 +1,9 @@
+### 0.1.6 (2013-10-3)
+#### Improvements
+* Add option to use version incremented column instead of timestamps [#23]
+* Add support for async audits [#20]
+* Add support for Rails4 [#27]
+
 ### 0.1.5 (2012-11-01)
 #### Fixes
 * Add attr_accessible for Auditable::Audit model [#13]

@@ -60,7 +60,7 @@ Then, provide a list of methods you'd like to audit to the `audit` method in you
 * attributes: _[Array]_ Array of symbols for the model attributes that will be stored in the audit
 * config: _[Hash]_ Hash of auditable configurations
 
-Config Hash:
+Config Hash: Optional configuration settings for customizing how auditable works. 
 *  after_create: _[Symbol]_ callback after the new audit is created
 *  after_update: _[Symbol]_ callback after an audit is updated
 *  changed_by: _[Symbol]_  Method to call to set the created_by model. Defaults to :user

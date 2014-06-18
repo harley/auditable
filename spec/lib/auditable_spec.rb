@@ -42,6 +42,20 @@ describe Auditable do
     end
   end
 
+  it "should only compare older audits when there are multiple audits for a timestamp" do
+    require 'timecop'
+    Timecop.freeze do
+      user.update_attributes :name => "Alpha"
+      user.update_attributes :name => "Bravo"
+      user.update_attributes :name => "Charlie"
+    end
+
+    user.audits[0].latest_diff.should == {"name" => [nil, "test user"]}
+    user.audits[1].latest_diff.should == {"name" => ["test user", "Alpha"]}
+    user.audits[2].latest_diff.should == {"name" => ["Alpha", "Bravo"]}
+    user.audits[3].latest_diff.should == {"name" => ["Bravo", "Charlie"]}
+  end
+
   context "for existing records without existing audits" do
     before do
       survey.audits.delete_all
